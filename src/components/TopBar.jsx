@@ -24,6 +24,17 @@ function IconButton({ label, shortcut, onClick, children }) {
   );
 }
 
+// One side of a custom width : height ratio (e.g. 3 : 4, 1200 : 628).
+function RatioInput({ value, onChange, label }) {
+  return (
+    <input
+      type="number" min={0.1} step="any" value={value} aria-label={label}
+      onChange={(e) => { const v = Number(e.target.value); if (v > 0) onChange(v); }}
+      className="h-7 w-14 rounded-[3px] bg-muted px-1.5 text-center font-mono text-[11px] text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring"
+    />
+  );
+}
+
 export default function TopBar({ view, onView }) {
   const engine = useEngine();
   const { state } = engine;
@@ -52,9 +63,16 @@ export default function TopBar({ view, onView }) {
         <Select value={state.format} onValueChange={(v) => engine.setFormat(v)}>
           <SelectTrigger size="sm" className="h-8 w-[118px] shrink-0 border-none lg:w-[170px] text-[12px] shadow-none hover:bg-muted"><SelectValue /></SelectTrigger>
           <SelectContent>
-            {Object.keys(FORMATS).map((f) => <SelectItem key={f} value={f} className="text-[12px]">{f}</SelectItem>)}
+            {Object.keys(FORMATS).map((f) => <SelectItem key={f} value={f} className="text-[12px]">{f === 'Custom' ? 'Custom ratio…' : f}</SelectItem>)}
           </SelectContent>
         </Select>
+        {state.format === 'Custom' && (
+          <div className="flex items-center gap-1 text-[12px] text-muted-foreground" title="Width : height">
+            <RatioInput value={state.frame.w} onChange={(w) => engine.setFrame(w, state.frame.h)} label="Width" />
+            <span>:</span>
+            <RatioInput value={state.frame.h} onChange={(h) => engine.setFrame(state.frame.w, h)} label="Height" />
+          </div>
+        )}
         <Separator orientation="vertical" className="mx-1 h-5!" />
         <IconButton label={state.motion.paused ? 'Play' : 'Pause'} shortcut="Space" onClick={() => engine.togglePause()}>
           {state.motion.paused ? <Play /> : <Pause />}

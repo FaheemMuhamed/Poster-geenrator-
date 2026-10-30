@@ -10,9 +10,10 @@ import {
   settingsOf, embedCode, downloadStandaloneHTML, BLEND_CSS,
 } from './shared/export.js';
 import { makeRandom } from './shared/random.js';
+import { createSource, SAMPLES, DEFAULT_SAMPLE } from './shared/sources.js';
 import { encodeShort, decodeShort, isShortHash, exampleFromHash, readValue } from './shared/shortlink.js';
 
-export { MODES, PALETTES, EXPORT_SIZES };
+export { MODES, PALETTES, EXPORT_SIZES, SAMPLES };
 
 export const FORMATS = {
   'A-series (portrait)': 1 / Math.SQRT2,
@@ -20,12 +21,24 @@ export const FORMATS = {
   '9:16 (Story)': 9 / 16,
   '1:1 (Square)': 1,
   '16:9 (Landscape)': 16 / 9,
+  Custom: null, // uses state.frame (width : height)
 };
+
+// The poster's width / height.
+export function aspectOf(state) {
+  if (state.format === 'Custom') {
+    const { w, h } = state.frame || {};
+    return w > 0 && h > 0 ? Math.min(8, Math.max(1 / 8, w / h)) : 1;
+  }
+  return FORMATS[state.format] || FORMATS['A-series (portrait)'];
+}
 
 export const DEFAULT_STATE = {
   mode: 'pills',
   seed: 2026,
   format: 'A-series (portrait)',
+  frame: { w: 3, h: 4 },          // used when format is 'Custom'
+  source: { sample: DEFAULT_SAMPLE }, // the picture image effects start from
   palette: 'Chromatography',
   colors: { ...PALETTES['Chromatography'] },
   bloom: { amount: 0.7, count: 3 },
@@ -44,6 +57,8 @@ export const DEFAULT_STATE = {
     textCase: 'As typed',           // 'As typed' | 'UPPERCASE' | 'lowercase'
     titleStyle: 'Fill',             // 'Fill' | 'Outline'
     blend: 'Normal',                // 'Normal' | 'Difference' | 'Multiply'
+    background: 'None',             // 'None' | 'Block' | 'Pill': a solid shape behind each line
+    blockColor: 'ink',              // palette key for that shape
   },
   params: {},
 };
@@ -140,7 +155,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     const r = els.viewport.getBoundingClientRect();
     const pad = embed ? 0 : r.width < 600 ? 16 : 48;
     const aw = r.width - pad * 2, ah = r.height - pad * 2;
-    const aspect = FORMATS[state.format] || FORMATS['A-series (portrait)'];
+    const aspect = aspectOf(state);
     let w = aw, h = aw / aspect;
     if (h > ah) { h = ah; w = ah * aspect; }
     w = Math.max(80, Math.floor(w)); h = Math.max(80, Math.floor(h));
@@ -167,6 +182,11 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     drawType(c, size.w, size.h, text, state.colors, { showGrid: state.text.grid && !embed });
   }
 
+  // ---------- Image source (for image effects) ----------
+  // Uploads and the webcam stay on this device; links only remember the sample.
+  const source = createSource(state.source?.sample || DEFAULT_SAMPLE);
+  const sourceChanged = () => { instance?.onParam?.('source'); emit(); };
+
   // ---------- Modes ----------
   let mode = null;      // the mode definition (params, create…)
   let instance = null;  // the running poster
@@ -177,6 +197,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
       container: els.scene,
       state,
       pointer,
+      source,
       get params() { return state.params[id]; },
       get palette() { return state.colors; },
       rand: makeRandom(state.seed),
@@ -250,6 +271,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     pointer.vy = pointer.vy * 0.6 + (pointer.y - pointer.py) * 0.4;
     pointer.px = pointer.x; pointer.py = pointer.y;
 
+    source.tick();
     if (instance) {
       try { instance.frame(time, step); }
       catch (e) { console.error(e); notify('This mode hit an error, see console'); instance = null; }
@@ -354,6 +376,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
       // The ambient-glow switch is the viewer's preference, not part of a poster.
       Object.assign(state, next, { textHidden: false, ui: state.ui });
       loadFont(state.text, () => { typeDirty = true; });
+      if (source.kind === 'sample' && state.source?.sample !== source.sample) source.setSample(state.source?.sample || DEFAULT_SAMPLE);
       fitStage();
       setMode(state.mode);
     },
@@ -380,6 +403,19 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
 
     toggleAmbient() { state.ui.ambient = !state.ui.ambient; drawAmbient(); changed(); },
     setFormat(f) { state.format = f; fitStage(); changed(); },
+    setFrame(w, h) { state.frame = { w, h }; if (state.format === 'Custom') fitStage(); changed(); },
+
+    get source() { return source; },
+    setSourceSample(name) { state.source = { sample: name }; source.setSample(name); sourceChanged(); saveUrl(); },
+    async setSourceFile(file) {
+      try { await source.setFile(file); sourceChanged(); notify(`Using ${source.name}`); }
+      catch (e) { notify(e.message || "Couldn't open that image"); }
+    },
+    async startWebcam() {
+      try { await source.startWebcam(); sourceChanged(); }
+      catch { notify('The webcam is blocked or unavailable. Check your browser permissions.'); }
+    },
+    stopWebcam() { source.stopWebcam(); sourceChanged(); },
 
     setText(key, v) {
       if (key in state.text.lines) state.text.lines[key] = v;
@@ -421,7 +457,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
       await copyText(location.href, 'Share link copied');
     },
     copyEmbed() {
-      copyText(embedCode(toHash(), FORMATS[state.format]),
+      copyText(embedCode(toHash(), aspectOf(state)),
         isLocal() ? 'Embed code copied. It works on other sites once published' : 'Embed code copied');
     },
     async downloadHTML() {
@@ -450,6 +486,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
       life.abort();
       try { instance?.dispose(); } catch (e) { console.warn(e); }
       instance = null;
+      source.dispose();
       els.scene.innerHTML = '';
     },
   };

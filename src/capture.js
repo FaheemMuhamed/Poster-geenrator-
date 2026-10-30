@@ -62,7 +62,9 @@ const PREVIEW_PALETTE = {
 
 async function recordPreviews() {
   setViewport(240, 340);
-  for (const m of MODES) {
+  // capture.html?only=dither,prism records just those entries.
+  const only = new URLSearchParams(location.search).get('only')?.split(',').filter(Boolean);
+  for (const m of MODES.filter((x) => !only || only.includes(x.id))) {
     const palette = PREVIEW_PALETTE[m.id] || 'Chromatography';
     await settle({ mode: m.id, seed: 7, palette, colors: PALETTES[palette], ui: { ambient: false },
       text: { ...DEFAULT_STATE.text, layout: '12-field', lines: { title: m.name, subtitle: '', date: '', venue: '', footer: '' } } }, 1500);

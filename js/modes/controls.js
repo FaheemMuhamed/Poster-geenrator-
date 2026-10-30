@@ -22,7 +22,8 @@ export const CONTROL_LAYOUT = {
 // Returns [{ title, keys, essential }] for a mode definition.
 export function controlSections(mode) {
   const all = Object.keys(mode.params || {});
-  const layout = CONTROL_LAYOUT[mode.id] || { essentials: all.slice(0, 4), groups: {} };
+  // A mode can carry its own layout (`controls: { essentials, groups }`) instead of an entry above.
+  const layout = CONTROL_LAYOUT[mode.id] || mode.controls || { essentials: all.slice(0, 4), groups: {} };
   const used = new Set();
   const take = (keys) => keys.filter((k) => all.includes(k) && !used.has(k) && used.add(k));
   const sections = [{ title: 'Essentials', keys: take(layout.essentials), essential: true }];

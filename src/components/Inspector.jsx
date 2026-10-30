@@ -15,6 +15,7 @@ import { useEngine } from '../useEngine.js';
 import { ParamField, Section, SelectField, SliderField, SwitchField, TextField } from './Field.jsx';
 import LayoutPicker from './LayoutPicker.jsx';
 import CodeTab from './CodeTab.jsx';
+import SourcePicker from './SourcePicker.jsx';
 import { cn } from '@/lib/utils';
 
 const COLOR_KEYS = [['bg', 'Background'], ['ink', 'Ink'], ['c1', 'Accent 1'], ['c2', 'Accent 2'], ['c3', 'Accent 3'], ['c4', 'Accent 4']];
@@ -40,6 +41,7 @@ function ShapeTab({ engine }) {
   const sections = controlSections(mode);
   return (
     <>
+      {mode.medium === 'image' && <SourcePicker engine={engine} />}
       {sections.map((s) => (
         <Section key={s.title} title={s.title} collapsible={!s.essential} defaultOpen={s.essential}>
           {s.keys.map((k) => (
@@ -145,6 +147,21 @@ function TypeTab({ engine }) {
         <Segmented label="Case" value={t.textCase} options={[['As typed', 'Aa'], ['UPPERCASE', 'AA'], ['lowercase', 'aa']]} onChange={(v) => engine.setText('textCase', v)} />
         <Segmented label="Title" value={t.titleStyle} options={[['Fill', 'Fill'], ['Outline', 'Outline']]} onChange={(v) => engine.setText('titleStyle', v)} />
         <Segmented label="Blend" value={t.blend} options={[['Normal', 'Normal'], ['Difference', 'Diff'], ['Multiply', 'Mult']]} onChange={(v) => engine.setText('blend', v)} />
+      </Section>
+      <Section title="Text background" defaultOpen={t.background && t.background !== 'None'}>
+        <Segmented label="Shape" value={t.background || 'None'} options={[['None', 'None'], ['Block', 'Block'], ['Pill', 'Pill']]} onChange={(v) => engine.setText('background', v)} />
+        {t.background && t.background !== 'None' && (
+          <div className="flex items-center justify-between py-1.5">
+            <span className="text-[12px] text-muted-foreground">Colour</span>
+            <div className="flex gap-1.5">
+              {COLOR_KEYS.map(([k, label]) => (
+                <button key={k} title={label} onClick={() => engine.setText('blockColor', k)}
+                  className={cn('size-5 rounded-full ring-1 ring-foreground/10', (t.blockColor || 'ink') === k && 'ring-2 ring-foreground ring-offset-2')}
+                  style={{ background: state.colors[k] }} />
+              ))}
+            </div>
+          </div>
+        )}
       </Section>
     </>
   );

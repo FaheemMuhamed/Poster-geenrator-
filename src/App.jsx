@@ -69,6 +69,23 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
+  // Drop or paste an image anywhere in the editor to use it as the image source.
+  useEffect(() => {
+    if (!engine || EMBED || view !== 'create') return;
+    const fileOf = (list) => [...(list || [])].find((f) => f.type?.startsWith('image/'));
+    const onOver = (e) => { if ([...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); };
+    const onDrop = (e) => { const f = fileOf(e.dataTransfer?.files); if (!f) return; e.preventDefault(); useImage(f); };
+    const onPaste = (e) => { if (e.target.closest?.('input, textarea')) return; const f = fileOf(e.clipboardData?.files); if (f) useImage(f); };
+    const useImage = (f) => {
+      engine.setSourceFile(f);
+      if (engine.mode?.medium !== 'image') toast('Image loaded. Pick an entry from the Image group to use it.');
+    };
+    window.addEventListener('dragover', onOver);
+    window.addEventListener('drop', onDrop);
+    window.addEventListener('paste', onPaste);
+    return () => { window.removeEventListener('dragover', onOver); window.removeEventListener('drop', onDrop); window.removeEventListener('paste', onPaste); };
+  }, [engine, view]);
+
   // Keyboard shortcuts (editor only)
   useEffect(() => {
     if (!engine || EMBED || view !== 'create') return;

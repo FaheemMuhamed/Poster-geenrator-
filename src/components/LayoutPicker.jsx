@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { drawType, LAYOUT_GROUPS, LAYOUT_INFO } from '../../js/shared/typeLayer.js';
-import { FORMATS } from '../../js/engine.js';
+import { aspectOf } from '../../js/engine.js';
 import { cn } from '@/lib/utils';
 
 // A tiny live preview of one layout with the user's own text and colours.
@@ -30,7 +30,7 @@ function Thumb({ layout, text, colors, aspect, active, onClick }) {
 }
 
 export default function LayoutPicker({ state, onPick }) {
-  const aspect = FORMATS[state.format];
+  const aspect = aspectOf(state);
   // Fresh copies so thumbnails redraw when text or colours change.
   const text = { ...state.text, lines: { ...state.text.lines } };
   const colors = { ...state.colors };

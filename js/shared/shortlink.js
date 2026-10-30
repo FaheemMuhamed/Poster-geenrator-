@@ -16,13 +16,14 @@ const CODES = [
   ['text.size', 'ts'], ['text.layout', 'l'], ['text.color', 'tc'], ['text.grid', 'g'],
   ['text.tracking', 'tt'], ['text.bodyTracking', 'bt'], ['text.leading', 'ld'],
   ['text.textCase', 'case'], ['text.titleStyle', 'sty'], ['text.blend', 'bl'],
+  ['frame.w', 'fw'], ['frame.h', 'fh'], ['text.background', 'tb'], ['text.blockColor', 'tbc'], ['source.sample', 'src'],
 ];
 const FX_PREFIX = 'x.';
 const PARAM_PREFIX = 'p.';
 
 // Long option values → short ones.
 const SHORT_VALUES = {
-  format: { 'A-series (portrait)': 'a', '4:5 (Instagram)': '45', '9:16 (Story)': '916', '1:1 (Square)': '1x1', '16:9 (Landscape)': '169' },
+  format: { 'A-series (portrait)': 'a', '4:5 (Instagram)': '45', '9:16 (Story)': '916', '1:1 (Square)': '1x1', '16:9 (Landscape)': '169', Custom: 'c' },
   palette: Object.fromEntries(Object.keys(PALETTES).map((p) => [p, p.toLowerCase().replace(/\s+/g, '-')])),
   'text.textCase': { 'As typed': 'a', UPPERCASE: 'U', lowercase: 'l' },
 };

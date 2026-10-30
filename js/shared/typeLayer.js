@@ -119,7 +119,7 @@ function drawGrid(ctx, g, color) {
 
 // ---------- Text helpers ----------
 // Calls that pass a weight are captions (body face); calls without one are the title.
-function makeWriter(ctx, text) {
+function makeWriter(ctx, text, palette = {}) {
   const hasSpacing = 'letterSpacing' in ctx;
   const set = (size, weight) => {
     const body = weight !== undefined;
@@ -129,7 +129,32 @@ function makeWriter(ctx, text) {
   };
   const split = (s) => applyCase(String(s || ''), text.textCase).split('\\n');
   const outline = text.titleStyle === 'Outline';
+  // Optional solid shape behind each line ('Block' or 'Pill'). The text switches to the
+  // background colour when it would otherwise disappear into the shape.
+  const bgShape = text.background === 'Block' || text.background === 'Pill' ? text.background : null;
+  const blockFill = palette[text.blockColor] || palette.ink;
+  const backdrop = (str, x, y, size) => {
+    if (!bgShape || !str.trim()) return;
+    const tw = ctx.measureText(str).width;
+    const left = ctx.textAlign === 'right' ? x - tw : ctx.textAlign === 'center' ? x - tw / 2 : x;
+    const px = size * (bgShape === 'Pill' ? 0.34 : 0.2), py = size * 0.12;
+    const bh = size * 1.02 + py * 2;
+    const inked = ctx.fillStyle;
+    ctx.save();
+    ctx.fillStyle = blockFill;
+    ctx.beginPath();
+    ctx.roundRect(left - px, y - py, tw + px * 2, bh, bgShape === 'Pill' ? bh / 2 : size * 0.04);
+    ctx.fill();
+    ctx.restore();
+    if (String(inked).toLowerCase() === String(blockFill).toLowerCase()) ctx.fillStyle = palette.bg;
+    return inked;
+  };
   const paint = (str, x, y, size, body) => {
+    const restore = backdrop(str, x, y, size);
+    if (restore) { draw(str, x, y, size, body); ctx.fillStyle = restore; return; }
+    draw(str, x, y, size, body);
+  };
+  const draw = (str, x, y, size, body) => {
     if (outline && !body) {
       ctx.save();
       ctx.strokeStyle = ctx.fillStyle;
@@ -488,7 +513,7 @@ export function drawType(ctx, w, h, text, palette, opts = {}) {
   let g = null;
   if (text.show) {
     ctx.fillStyle = palette[text.color] || palette.ink;
-    g = layout(text.lines, makeWriter(ctx, text), w, h, sizes, ctx, text);
+    g = layout(text.lines, makeWriter(ctx, text, palette), w, h, sizes, ctx, text);
   } else if (opts.showGrid) {
     // Still show the guides with text hidden, by laying out into an invisible pass.
     ctx.globalAlpha = 0;
