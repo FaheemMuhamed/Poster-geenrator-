@@ -181,7 +181,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     state.textHidden = !!mode.ownsText;
     typeDirty = true;
   }
-  const rebuildSoon = debounce(() => { if (!destroyed) buildInstance(); }, 120);
+  const rebuildSoon = debounce(() => { if (!destroyed && mode) buildInstance(); }, 120);
 
   let switching = null;
   async function setMode(id) {
@@ -265,6 +265,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     },
 
     setParam(key, value) {
+      if (!mode) return;
       state.params[mode.id][key] = value;
       const def = mode.params[key];
       if (def?.rebuild) rebuildSoon();
@@ -272,8 +273,9 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
       changed();
     },
     setSeed(seed) { state.seed = seed; rebuildSoon(); changed(); },
-    randomise() { state.seed = Math.floor(Math.random() * 99999); buildInstance(); changed(); },
+    randomise() { state.seed = Math.floor(Math.random() * 99999); if (mode) buildInstance(); changed(); },
     surprise() {
+      if (!mode) return;
       const r = Math.random;
       const pals = Object.keys(PALETTES);
       state.palette = pals[Math.floor(r() * pals.length)];
@@ -325,7 +327,9 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     load(settings) {
       endPreview();
       // Stop the running poster first: its settings are about to be replaced.
+      // Clearing `mode` too tells the UI there's nothing to show until the new mode loads.
       if (instance) { try { instance.dispose(); } catch (e) { console.warn(e); } instance = null; }
+      mode = null;
       const next = merge(structuredClone(DEFAULT_STATE), migrate(structuredClone(settings)));
       for (const k of Object.keys(state)) if (!(k in next)) delete state[k];
       Object.assign(state, next, { textHidden: false });

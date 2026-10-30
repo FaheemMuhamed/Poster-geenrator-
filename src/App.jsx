@@ -7,6 +7,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import TopBar from './components/TopBar.jsx';
 import ModeList from './components/ModeList.jsx';
 import Inspector from './components/Inspector.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 // The Explore universe is only downloaded when first opened.
 const Explore = lazy(() => import('./explore/Explore.jsx'));
@@ -83,17 +84,19 @@ export default function App() {
       <div className="flex h-full flex-col">
         {withEngine(<TopBar view={view} onView={go} />)}
         <div className="relative flex min-h-0 flex-1 flex-col md:flex-row">
-          {withEngine(<ModeList />)}
+          <ErrorBoundary>{withEngine(<ModeList />)}</ErrorBoundary>
           <main className="relative isolate flex min-h-[55vh] min-w-0 flex-1 overflow-hidden bg-neutral-100">{stage}</main>
-          {withEngine(<Inspector />)}
+          <ErrorBoundary>{withEngine(<Inspector />)}</ErrorBoundary>
 
           {view === 'explore' && engine && (
             <div className="fixed inset-x-0 bottom-0 top-12 z-20 bg-[#eceef0]">
-              <Suspense fallback={<div className="grid h-full place-items-center text-[13px] text-neutral-500">Loading the universe…</div>}>
-                <Explore
-                  onOpen={(settings) => { engine.load(settings); go('create'); history.replaceState(null, '', location.pathname + location.search); engine.saveUrlNow(); }}
-                />
-              </Suspense>
+              <ErrorBoundary>
+                <Suspense fallback={<div className="grid h-full place-items-center text-[13px] text-neutral-500">Loading the universe…</div>}>
+                  <Explore
+                    onOpen={(settings) => { engine.load(settings); go('create'); history.replaceState(null, '', location.pathname + location.search); }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             </div>
           )}
         </div>
