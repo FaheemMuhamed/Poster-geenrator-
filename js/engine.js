@@ -7,7 +7,7 @@ import { drawType, loadFont } from './shared/typeLayer.js';
 import { FX_DEFAULTS } from './shared/postfx.js';
 import {
   EXPORT_SIZES, exportPNG, copyPNG, startRecording, encodeState, decodeState,
-  settingsOf, embedCode, downloadStandaloneHTML,
+  settingsOf, embedCode, downloadStandaloneHTML, BLEND_CSS,
 } from './shared/export.js';
 import { makeRandom } from './shared/random.js';
 
@@ -31,13 +31,29 @@ export const DEFAULT_STATE = {
   grain: 0.25,
   fx: { ...FX_DEFAULTS },
   motion: { speed: 1, mouse: 1, paused: false },
+  ui: { ambient: true },
   text: {
     show: true,
     lines: { title: 'Sleepwalker', subtitle: 'Release Party', date: '03.26.26', venue: 'Plot Gallery', footer: 'Los Angeles · 7–10 PM' },
-    font: 'Inter', weight: 500, size: 1, layout: '12-field', color: 'ink', grid: false,
+    // font/weight = title face; bodyFont/bodyWeight = everything else.
+    font: 'Inter', weight: 600, bodyFont: 'Inter', bodyWeight: 400,
+    size: 1, layout: '12-field', color: 'ink', grid: false,
+    tracking: 0, bodyTracking: 0,   // in 1/1000 em
+    leading: 1,                     // multiplier on each layout's line spacing
+    textCase: 'As typed',           // 'As typed' | 'UPPERCASE' | 'lowercase'
+    titleStyle: 'Fill',             // 'Fill' | 'Outline'
+    blend: 'Normal',                // 'Normal' | 'Difference' | 'Multiply'
   },
   params: {},
 };
+
+// Upgrades settings saved by older versions (share links, HTML files, examples).
+export function migrate(raw) {
+  if (!raw || typeof raw !== 'object') return raw;
+  const t = raw.text;
+  if (t && t.font && !t.bodyFont) { t.bodyFont = t.font; t.bodyWeight = 400; }
+  return raw;
+}
 
 export function merge(base, extra) {
   if (!extra || typeof extra !== 'object') return base;
@@ -59,15 +75,33 @@ function debounce(fn, ms) {
 // `els`: { viewport, stage, scene, typeCanvas }. `notify(msg)` shows a toast. `embed`: poster only.
 export function createEngine({ els, notify = () => {}, embed = false }) {
   // Settings come from (in order): the link, a downloaded HTML file's baked-in settings, defaults.
-  const state = merge(structuredClone(DEFAULT_STATE), decodeState(location.hash) || window.POSTER_STATE);
+  const state = merge(structuredClone(DEFAULT_STATE), migrate(decodeState(location.hash) || window.POSTER_STATE));
   state.textHidden = false;
 
   // ---------- Change notifications for the UI ----------
   const listeners = new Set();
   let version = 0;
   const emit = () => { version++; listeners.forEach((fn) => fn()); };
-  const saveUrl = debounce(() => { if (!embed) history.replaceState(null, '', '#' + encodeState(state)); }, 300);
+  let active = true;
+  const saveUrlNow = () => { if (!embed && active && !preview) history.replaceState(null, '', '#' + encodeState(state)); };
+  const saveUrl = debounce(saveUrlNow, 300);
   const changed = () => { typeDirty = true; emit(); saveUrl(); };
+
+  // Hover previews keep a copy of what they changed and put it back afterwards.
+  let preview = null;
+  function beginPreview() {
+    if (!preview) preview = { fx: { ...state.fx }, colors: { ...state.colors } };
+  }
+  function endPreview() {
+    if (!preview) return;
+    const p = preview;
+    preview = null;
+    Object.assign(state.fx, p.fx);
+    const paletteChanged = Object.keys(p.colors).some((k) => p.colors[k] !== state.colors[k]);
+    Object.assign(state.colors, p.colors);
+    if (paletteChanged) { typeDirty = true; instance?.onParam?.('palette'); }
+    emit();
+  }
 
   // ---------- Pointer (shared with modes) ----------
   // x, y are 0..1 across the poster (y down). vx, vy is the movement since last frame.
@@ -113,6 +147,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     const c = els.typeCanvas.getContext('2d');
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.clearRect(0, 0, els.typeCanvas.width, els.typeCanvas.height);
+    els.typeCanvas.style.mixBlendMode = BLEND_CSS[state.text.blend] || 'normal';
     if (state.textHidden && !state.text.grid) return;
     c.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
     // Modes that draw their own text still get the grid guides.
@@ -167,6 +202,27 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     changed();
   }
 
+  // ---------- Ambient glow ----------
+  // A tiny copy of the poster that CSS blurs and scales into a glow around it
+  // (like a TV's ambient light). Never part of exports.
+  let frameCount = 0;
+  function drawAmbient() {
+    const a = els.ambient;
+    if (!a || embed) return;
+    a.style.opacity = state.ui.ambient ? '' : '0';
+    if (!state.ui.ambient) return;
+    const w = 32, h = Math.max(8, Math.round(32 * size.h / size.w));
+    if (a.width !== w || a.height !== h) { a.width = w; a.height = h; }
+    const c = a.getContext('2d');
+    const sc = sceneCanvas();
+    try {
+      c.fillStyle = state.colors.bg;
+      c.fillRect(0, 0, w, h);
+      if (sc) c.drawImage(sc, 0, 0, w, h);
+      c.drawImage(els.typeCanvas, 0, 0, w, h);
+    } catch { /* canvas not ready yet */ }
+  }
+
   // ---------- Animation loop ----------
   let time = 0, last = performance.now(), recorder = null, raf = 0;
   const sceneCanvas = () => els.scene.querySelector('canvas');
@@ -184,6 +240,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
       catch (e) { console.error(e); notify('This mode hit an error, see console'); instance = null; }
     }
     if (typeDirty) { drawTypeLayer(); typeDirty = false; }
+    if (++frameCount % 4 === 0) drawAmbient();
     if (recorder) {
       recorder.tick(sceneCanvas(), size.w, size.h, size.dpr);
       if (!recorder.active) { recorder = null; emit(); }
@@ -236,6 +293,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     },
 
     setPalette(name) {
+      preview = null; // clicking commits whatever is being previewed
       state.palette = name;
       Object.assign(state.colors, PALETTES[name]);
       typeDirty = true;
@@ -251,16 +309,50 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     setBloom(key, v) { state.bloom[key] = v; changed(); },
     setGrain(v) { state.grain = v; changed(); },
     setFx(key, v) { state.fx[key] = v; changed(); },
-    applyFx(values) { Object.assign(state.fx, values); changed(); },
+    applyFx(values) { preview = null; Object.assign(state.fx, values); changed(); },
     setMotion(key, v) { state.motion[key] = v; changed(); },
     togglePause() { state.motion.paused = !state.motion.paused; changed(); },
+    // Sleep while another view (Explore) covers the editor.
+    setActive(on) {
+      if (on === active || destroyed) return;
+      active = on;
+      cancelAnimationFrame(raf);
+      if (on) { last = performance.now(); raf = requestAnimationFrame(loop); saveUrlNow(); }
+    },
+    saveUrlNow,
+
+    // Replace all settings (e.g. opening an example from Explore).
+    load(settings) {
+      endPreview();
+      // Stop the running poster first: its settings are about to be replaced.
+      if (instance) { try { instance.dispose(); } catch (e) { console.warn(e); } instance = null; }
+      const next = merge(structuredClone(DEFAULT_STATE), migrate(structuredClone(settings)));
+      for (const k of Object.keys(state)) if (!(k in next)) delete state[k];
+      Object.assign(state, next, { textHidden: false });
+      loadFont(state.text, () => { typeDirty = true; });
+      fitStage();
+      setMode(state.mode);
+    },
+
+    // Hover previews: try a look on the live poster without committing it.
+    previewFx(values) { beginPreview(); Object.assign(state.fx, values); emit(); },
+    previewPalette(name) {
+      beginPreview();
+      Object.assign(state.colors, PALETTES[name]);
+      typeDirty = true;
+      instance?.onParam?.('palette');
+      emit();
+    },
+    endPreview,
+
+    toggleAmbient() { state.ui.ambient = !state.ui.ambient; drawAmbient(); changed(); },
     setFormat(f) { state.format = f; fitStage(); changed(); },
 
     setText(key, v) {
       if (key in state.text.lines) state.text.lines[key] = v;
       else state.text[key] = v;
       const redraw = () => { typeDirty = true; instance?.onParam?.('text'); emit(); };
-      if (key === 'font' || key === 'weight') loadFont(state.text, redraw);
+      if (['font', 'weight', 'bodyFont', 'bodyWeight'].includes(key)) loadFont(state.text, redraw);
       redraw();
       saveUrl();
     },

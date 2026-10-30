@@ -5,7 +5,9 @@
 // block (margins), optional columns/rows, and places the five lines on that grid.
 // With `showGrid`, the grid itself is drawn as hairline guides (never exported).
 
-export const FONTS = ['Inter', 'Space Grotesk', 'JetBrains Mono', 'Instrument Serif', 'Space Mono'];
+import { FONTS_LIBRARY, fontByName } from './fonts.js';
+
+export const FONTS = FONTS_LIBRARY.map((f) => f.name);
 export const LINE_KEYS = ['title', 'subtitle', 'date', 'venue', 'footer'];
 
 // Layouts grouped for the picker. "Grid Systems" follows Josef Müller-Brockmann's
@@ -44,18 +46,31 @@ export const LAYOUT_GROUPS = [
 export const LAYOUT_INFO = Object.assign({}, ...LAYOUT_GROUPS.map((g) => g.layouts));
 export const LAYOUTS = Object.keys(LAYOUT_INFO);
 
-export function fontCss(text, sizePx, weightOverride) {
-  const w = weightOverride ?? text.weight;
-  return `${w} ${sizePx}px "${text.font}", Inter, sans-serif`;
+// CSS font shorthand for a font name at the closest weight that font actually has.
+function faceCss(name, weight, sizePx) {
+  const f = fontByName(name);
+  const family = f?.family || name;
+  const w = f ? f.weights.reduce((a, b) => (Math.abs(b - weight) < Math.abs(a - weight) ? b : a)) : weight;
+  return `${w} ${sizePx}px "${family}", Inter, sans-serif`;
 }
 
-// Ask the browser to load the chosen font; calls back once it can be drawn on canvas.
-export function loadFont(text, onReady) {
-  Promise.all([
-    document.fonts.load(fontCss(text, 40)),
-    document.fonts.load(fontCss(text, 40, 400)),
-  ]).then(onReady, onReady);
+// Title face (used by modes that draw their own text too). A weight override of 400 or less
+// asks for the body face, so older callers keep working.
+export function fontCss(text, sizePx, weightOverride) {
+  if (weightOverride !== undefined && weightOverride <= 400) return bodyCss(text, sizePx);
+  return faceCss(text.font, weightOverride ?? text.weight, sizePx);
 }
+
+export function bodyCss(text, sizePx) {
+  return faceCss(text.bodyFont || text.font, text.bodyWeight ?? 400, sizePx);
+}
+
+// Ask the browser to load the chosen fonts; calls back once they can be drawn on canvas.
+export function loadFont(text, onReady) {
+  Promise.all([document.fonts.load(fontCss(text, 40)), document.fonts.load(bodyCss(text, 40))]).then(onReady, onReady);
+}
+
+const applyCase = (s, c) => (c === 'UPPERCASE' ? s.toUpperCase() : c === 'lowercase' ? s.toLowerCase() : s);
 
 // ---------- Grid toolkit ----------
 // A text block inside margins, divided into cols × rows with a gutter.
@@ -103,9 +118,27 @@ function drawGrid(ctx, g, color) {
 }
 
 // ---------- Text helpers ----------
+// Calls that pass a weight are captions (body face); calls without one are the title.
 function makeWriter(ctx, text) {
-  const set = (size, weight) => { ctx.font = fontCss(text, size, weight); };
-  const split = (s) => String(s || '').split('\\n');
+  const hasSpacing = 'letterSpacing' in ctx;
+  const set = (size, weight) => {
+    const body = weight !== undefined;
+    ctx.font = body ? bodyCss(text, size) : fontCss(text, size);
+    if (hasSpacing) ctx.letterSpacing = `${((body ? text.bodyTracking : text.tracking) || 0) / 1000 * size}px`;
+    return body;
+  };
+  const split = (s) => applyCase(String(s || ''), text.textCase).split('\\n');
+  const outline = text.titleStyle === 'Outline';
+  const paint = (str, x, y, size, body) => {
+    if (outline && !body) {
+      ctx.save();
+      ctx.strokeStyle = ctx.fillStyle;
+      ctx.lineWidth = Math.max(0.6, size * 0.022);
+      ctx.lineJoin = 'round';
+      ctx.strokeText(str, x, y);
+      ctx.restore();
+    } else ctx.fillText(str, x, y);
+  };
 
   // Word-wraps `str` to `maxW`; respects typed "\n".
   const wrap = (str, maxW) => {
@@ -138,15 +171,15 @@ function makeWriter(ctx, text) {
     // Draws wrapped text in a box. valign: 'top' | 'bottom' | 'middle'. Returns height used.
     block(str, box, size, { align = 'left', valign = 'top', weight, leading = 1.08, wrapText = true } = {}) {
       if (!str) return 0;
-      set(size, weight);
+      const body = set(size, weight);
       const lines = wrapText ? wrap(str, box.w) : split(str);
-      const lh = size * leading;
+      const lh = size * leading * (text.leading || 1);
       const total = lines.length * lh;
       let y = valign === 'bottom' ? box.y + box.h - total : valign === 'middle' ? box.y + (box.h - total) / 2 : box.y;
       const x = align === 'right' ? box.x + box.w : align === 'center' ? box.x + box.w / 2 : box.x;
       ctx.textAlign = align;
       ctx.textBaseline = 'top';
-      for (const ln of lines) { ctx.fillText(ln, x, y + size * 0.02); y += lh; }
+      for (const ln of lines) { paint(ln, x, y + size * 0.02, size, body); y += lh; }
       return total;
     },
     rule(x1, y1, x2, y2, weight = 1) {
@@ -421,7 +454,7 @@ const LAYOUT_FNS = {
 
   'Along curve'(L, T, w, h, s, ctx, text) {
     const g = grid(w, h, { l: s.m, t: s.m, r: s.m, b: s.m });
-    const str = L.title || '';
+    const str = applyCase(L.title || '', text.textCase);
     const size = s.big * 0.7;
     ctx.font = fontCss(text, size);
     ctx.textAlign = 'center';

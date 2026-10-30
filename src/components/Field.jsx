@@ -74,16 +74,18 @@ export function Section({ title, children, defaultOpen = false, collapsible = tr
   const [open, setOpen] = useState(defaultOpen || !collapsible);
   return (
     <section className="border-b border-neutral-100 px-4 py-3 last:border-b-0">
-      <button
-        type="button"
-        disabled={!collapsible}
-        onClick={() => setOpen(!open)}
-        className={cn('flex w-full items-center gap-1.5 text-left', collapsible ? 'cursor-pointer' : 'cursor-default')}
-      >
-        {collapsible && <ChevronRight className={cn('size-3.5 text-neutral-400 transition-transform', open && 'rotate-90')} />}
-        <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-500">{title}</span>
+      <div className="flex items-center">
+        <button
+          type="button"
+          disabled={!collapsible}
+          onClick={() => setOpen(!open)}
+          className={cn('flex flex-1 items-center gap-1.5 text-left', collapsible ? 'cursor-pointer' : 'cursor-default')}
+        >
+          {collapsible && <ChevronRight className={cn('size-3.5 text-neutral-400 transition-transform', open && 'rotate-90')} />}
+          <span className="text-[12px] font-medium text-neutral-800">{title}</span>
+        </button>
         {aside && <span className="ml-auto">{aside}</span>}
-      </button>
+      </div>
       {open && <div className="mt-2">{children}</div>}
     </section>
   );

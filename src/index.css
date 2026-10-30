@@ -58,6 +58,16 @@
   body { @apply bg-background text-foreground antialiased overflow-hidden; font-size: 13px; }
 }
 
-/* The poster stage: canvases fill it exactly. */
-#stage canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; }
+/* The poster stage: scene + type canvases fill it exactly. */
+#stage > div > canvas, #type-layer { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; }
 #type-layer { pointer-events: none; }
+
+/* Ambient glow: a tiny copy of the poster, blurred and spread behind it. */
+#ambient {
+  position: absolute; z-index: -1; pointer-events: none;
+  left: -22%; top: -18%; width: 144%; height: 136%;
+  filter: blur(72px) saturate(1.6);
+  opacity: 0.6;
+  transition: opacity 0.6s ease;
+}
+@media (prefers-reduced-motion: reduce) { #ambient { transition: none; } }

@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- Dev-only tool: open http://localhost:5173/capture.html while `npm run dev` runs.
+     Records each mode's hover-preview clip and renders the Explore example posters into public/. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Capture previews</title>
+  <style>
+    body { margin: 0; font: 13px/1.5 Inter, system-ui, sans-serif; background: #f2f2f2; color: #222; }
+    main { display: flex; gap: 24px; padding: 24px; }
+    #viewport { position: relative; flex: none; display: flex; align-items: center; justify-content: center; background: #fff; }
+    #stage { position: relative; }
+    #stage > div > canvas, #type-layer { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; }
+    #type-layer { pointer-events: none; }
+    #log { white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 11px; max-height: 80vh; overflow: auto; flex: 1; }
+    button { font: inherit; padding: 6px 12px; margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <main>
+    <div>
+      <div id="viewport"><div id="stage"><div id="scene"></div><canvas id="type-layer"></canvas></div></div>
+      <p>
+        <button id="run-previews">Record mode previews</button>
+        <button id="run-examples">Render examples</button>
+      </p>
+    </div>
+    <div id="log"></div>
+  </main>
+  <script type="module" src="/src/capture.js"></script>
+</body>
+</html>

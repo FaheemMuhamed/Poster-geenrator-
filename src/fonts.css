@@ -1,0 +1,118 @@
+/*
+ * Self-hosted typefaces (files live in /public/fonts/<slug>/).
+ * Every family is SIL Open Font License 1.1 — see public/fonts/CREDITS.md
+ * and the OFL.txt next to each font.
+ */
+
+/* ───────── The League of Moveable Type ───────── */
+
+@font-face { font-family: "League Spartan"; src: url("/fonts/league-spartan/LeagueSpartan-VF.ttf") format("truetype"); font-weight: 100 900; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "League Gothic"; src: url("/fonts/league-gothic/LeagueGothic-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "League Gothic"; src: url("/fonts/league-gothic/LeagueGothic-Italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+
+/* Variable: wght 100–800, wdth 50–200 (font-stretch range keeps "normal" at 100%). */
+@font-face { font-family: "League Mono"; src: url("/fonts/league-mono/LeagueMono-VF.woff2") format("woff2"); font-weight: 100 800; font-stretch: 50% 200%; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Orbitron"; src: url("/fonts/orbitron/Orbitron-Light.woff") format("woff"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Orbitron"; src: url("/fonts/orbitron/Orbitron-Medium.woff") format("woff"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Orbitron"; src: url("/fonts/orbitron/Orbitron-Bold.woff") format("woff"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Orbitron"; src: url("/fonts/orbitron/Orbitron-Black.woff") format("woff"); font-weight: 900; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Chunk Five"; src: url("/fonts/chunk-five/ChunkFive-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Linden Hill"; src: url("/fonts/linden-hill/LindenHill-Regular.woff") format("woff"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Linden Hill"; src: url("/fonts/linden-hill/LindenHill-Italic.woff") format("woff"); font-weight: 400; font-style: italic; font-display: swap; }
+
+@font-face { font-family: "Knewave"; src: url("/fonts/knewave/Knewave-Regular.woff") format("woff"); font-weight: 400; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Blackout"; src: url("/fonts/blackout/Blackout-Midnight.woff") format("woff"); font-weight: 400; font-style: normal; font-display: swap; }
+
+/* ───────── Collletttivo ───────── */
+
+@font-face { font-family: "Apfel Grotezk"; src: url("/fonts/apfel-grotezk/ApfelGrotezk-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Apfel Grotezk"; src: url("/fonts/apfel-grotezk/ApfelGrotezk-Mittel.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Apfel Grotezk"; src: url("/fonts/apfel-grotezk/ApfelGrotezk-Fett.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Apfel Grotezk"; src: url("/fonts/apfel-grotezk/ApfelGrotezk-Satt.woff2") format("woff2"); font-weight: 900; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Necto Mono"; src: url("/fonts/necto-mono/NectoMono-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Mazius Display"; src: url("/fonts/mazius-display/MaziusDisplay-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Mazius Display"; src: url("/fonts/mazius-display/MaziusDisplay-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Mazius Display"; src: url("/fonts/mazius-display/MaziusDisplay-ExtraItalic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Mazius Display"; src: url("/fonts/mazius-display/MaziusDisplay-ExtraItalicBold.woff2") format("woff2"); font-weight: 700; font-style: italic; font-display: swap; }
+
+@font-face { font-family: "Ortica Linear"; src: url("/fonts/ortica-linear/OrticaLinear-Light.woff2") format("woff2"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Ortica Linear"; src: url("/fonts/ortica-linear/OrticaLinear-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Ortica Linear"; src: url("/fonts/ortica-linear/OrticaLinear-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+
+/* Variable: wght 400–900 */
+@font-face { font-family: "Sinistre"; src: url("/fonts/sinistre/Sinistre-VF.woff2") format("woff2"); font-weight: 400 900; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Mattone"; src: url("/fonts/mattone/Mattone-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Mattone"; src: url("/fonts/mattone/Mattone-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Mattone"; src: url("/fonts/mattone/Mattone-Black.woff2") format("woff2"); font-weight: 900; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Sneaky Times"; src: url("/fonts/sneaky-times/SneakyTimes-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+/* Variable: wdth 50–200 only (no weight axis). */
+@font-face { font-family: "Aujournuit"; src: url("/fonts/aujournuit/Aujournuit-VF.woff2") format("woff2"); font-weight: 400; font-stretch: 50% 200%; font-style: normal; font-display: swap; }
+
+/* ───────── Open Foundry ───────── */
+
+@font-face { font-family: "Bluu Next"; src: url("/fonts/bluu-next/BluuNext-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Bluu Next"; src: url("/fonts/bluu-next/BluuNext-BoldItalic.woff2") format("woff2"); font-weight: 700; font-style: italic; font-display: swap; }
+
+@font-face { font-family: "Reglo"; src: url("/fonts/reglo/Reglo-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Bagnard"; src: url("/fonts/bagnard/Bagnard-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Terminal Grotesque Open"; src: url("/fonts/terminal-grotesque/TerminalGrotesque-Open.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Office Code Pro"; src: url("/fonts/office-code-pro/OfficeCodePro-Light.woff2") format("woff2"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Office Code Pro"; src: url("/fonts/office-code-pro/OfficeCodePro-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Office Code Pro"; src: url("/fonts/office-code-pro/OfficeCodePro-Italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Office Code Pro"; src: url("/fonts/office-code-pro/OfficeCodePro-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Cotham Sans"; src: url("/fonts/cotham-sans/CothamSans-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Cooper Hewitt"; src: url("/fonts/cooper-hewitt/CooperHewitt-Book.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Cooper Hewitt"; src: url("/fonts/cooper-hewitt/CooperHewitt-BookItalic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Cooper Hewitt"; src: url("/fonts/cooper-hewitt/CooperHewitt-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Cooper Hewitt"; src: url("/fonts/cooper-hewitt/CooperHewitt-Heavy.woff2") format("woff2"); font-weight: 800; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Gap Sans"; src: url("/fonts/gap-sans/GapSans-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gap Sans"; src: url("/fonts/gap-sans/GapSans-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gap Sans"; src: url("/fonts/gap-sans/GapSans-Black.woff2") format("woff2"); font-weight: 900; font-style: normal; font-display: swap; }
+
+/* ───────── via UNCUT.wtf ───────── */
+
+@font-face { font-family: "Gloock"; src: url("/fonts/gloock/Gloock-Regular.otf") format("opentype"); font-weight: 400; font-style: normal; font-display: swap; }
+
+/* Variable: wght 200–900 */
+@font-face { font-family: "Overused Grotesk"; src: url("/fonts/overused-grotesk/OverusedGrotesk-VF.ttf") format("truetype"); font-weight: 200 900; font-style: normal; font-display: swap; }
+
+/* Single heavy style (OS/2 weight 700). */
+@font-face { font-family: "Frick"; src: url("/fonts/frick/Frick-Regular.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Rag"; src: url("/fonts/rag/Rag-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Rag"; src: url("/fonts/rag/Rag-Italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Rag"; src: url("/fonts/rag/Rag-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Rag"; src: url("/fonts/rag/Rag-Black.woff2") format("woff2"); font-weight: 900; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Martian Mono"; src: url("/fonts/martian-mono/MartianMono-Light.woff2") format("woff2"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Martian Mono"; src: url("/fonts/martian-mono/MartianMono-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Martian Mono"; src: url("/fonts/martian-mono/MartianMono-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Martian Mono"; src: url("/fonts/martian-mono/MartianMono-ExtraBold.woff2") format("woff2"); font-weight: 800; font-style: normal; font-display: swap; }
+
+/* Variable: wght 100–900 (+ ELSH/ELGR element axes via font-variation-settings). */
+@font-face { font-family: "Handjet"; src: url("/fonts/handjet/Handjet-VF.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+
+/* Variable: wght 100–900 */
+@font-face { font-family: "Lil Grotesk"; src: url("/fonts/lil-grotesk/LilGrotesk-VF.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Blocks on Blocks"; src: url("/fonts/blocks-on-blocks/BlocksOnBlocks-Regular.otf") format("opentype"); font-weight: 400; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Geom"; src: url("/fonts/geom/Geom-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Sunday Masthead"; src: url("/fonts/sunday-masthead/SundayMasthead-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }

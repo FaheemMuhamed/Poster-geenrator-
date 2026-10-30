@@ -1,4 +1,6 @@
-import { Dices } from 'lucide-react';
+import { ChevronRight, Code2, Dices } from 'lucide-react';
+import { modeFile } from '../../js/modes/index.js';
+import { sourceUrl } from '../config.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -7,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { PALETTES, MODES } from '../../js/engine.js';
 import { controlSections } from '../../js/modes/controls.js';
-import { FONTS } from '../../js/shared/typeLayer.js';
+import { fontByName } from '../../js/shared/fonts.js';
+import FontPicker from './FontPicker.jsx';
 import { useEngine } from '../useEngine.js';
 import { ParamField, Section, SelectField, SliderField, SwitchField, TextField } from './Field.jsx';
 import LayoutPicker from './LayoutPicker.jsx';
@@ -43,7 +46,7 @@ function ShapeTab({ engine }) {
           ))}
         </Section>
       ))}
-      <Section title="Motion">
+      <Section title="Speed and mouse">
         <SliderField label="Speed" value={state.motion.speed} min={0} max={3} step={0.01} onChange={(v) => engine.setMotion('speed', v)} />
         <SliderField label="Mouse power" value={state.motion.mouse} min={0} max={3} step={0.01} onChange={(v) => engine.setMotion('mouse', v)} />
       </Section>
@@ -67,6 +70,8 @@ function ColourTab({ engine }) {
             <button
               key={name}
               onClick={() => engine.setPalette(name)}
+              onMouseEnter={() => engine.previewPalette(name)}
+              onMouseLeave={() => engine.endPreview()}
               className={cn('overflow-hidden rounded-md border text-left transition', state.palette === name ? 'border-neutral-900 ring-1 ring-neutral-900' : 'border-neutral-200 hover:border-neutral-400')}
             >
               <div className="flex h-7">{[p.bg, p.c1, p.c2, p.c3, p.c4, p.ink].map((c, i) => <div key={i} className="flex-1" style={{ background: c }} />)}</div>
@@ -115,14 +120,11 @@ function TypeTab({ engine }) {
       }>
         <LayoutPicker state={state} onPick={(l) => engine.setText('layout', l)} />
       </Section>
-      <Section title="Typeface" defaultOpen>
-        <SelectField label="Font" value={t.font} options={FONTS} onChange={(v) => engine.setText('font', v)} />
-        <div className="flex items-center justify-between gap-3 py-1">
-          <span className="text-[12px] text-neutral-600">Weight</span>
-          <ToggleGroup type="single" variant="outline" size="sm" value={String(t.weight)} onValueChange={(v) => v && engine.setText('weight', Number(v))}>
-            {[[400, 'Rg'], [500, 'Md'], [700, 'Bd'], [900, 'Bk']].map(([w, l]) => <ToggleGroupItem key={w} value={String(w)} className="px-2.5 text-[11px]">{l}</ToggleGroupItem>)}
-          </ToggleGroup>
-        </div>
+      <Section title="Typefaces" defaultOpen>
+        <FontPicker label="Title" value={t.font} onChange={(v) => engine.setText('font', v)} />
+        <WeightPicker font={t.font} value={t.weight} onChange={(v) => engine.setText('weight', v)} />
+        <FontPicker label="Text" value={t.bodyFont} onChange={(v) => engine.setText('bodyFont', v)} />
+        <WeightPicker font={t.bodyFont} value={t.bodyWeight} onChange={(v) => engine.setText('bodyWeight', v)} />
         <SliderField label="Size" value={t.size} min={0.4} max={2.5} step={0.01} onChange={(v) => engine.setText('size', v)} />
         <div className="flex items-center justify-between py-1.5">
           <span className="text-[12px] text-neutral-600">Colour</span>
@@ -135,8 +137,36 @@ function TypeTab({ engine }) {
           </div>
         </div>
       </Section>
+      <Section title="Typesetting">
+        <SliderField label="Title tracking" value={t.tracking} min={-100} max={300} step={5} onChange={(v) => engine.setText('tracking', v)} />
+        <SliderField label="Text tracking" value={t.bodyTracking} min={-50} max={300} step={5} onChange={(v) => engine.setText('bodyTracking', v)} />
+        <SliderField label="Leading" value={t.leading} min={0.7} max={1.8} step={0.01} onChange={(v) => engine.setText('leading', v)} />
+        <Segmented label="Case" value={t.textCase} options={[['As typed', 'Aa'], ['UPPERCASE', 'AA'], ['lowercase', 'aa']]} onChange={(v) => engine.setText('textCase', v)} />
+        <Segmented label="Title" value={t.titleStyle} options={[['Fill', 'Fill'], ['Outline', 'Outline']]} onChange={(v) => engine.setText('titleStyle', v)} />
+        <Segmented label="Blend" value={t.blend} options={[['Normal', 'Normal'], ['Difference', 'Diff'], ['Multiply', 'Mult']]} onChange={(v) => engine.setText('blend', v)} />
+      </Section>
     </>
   );
+}
+
+function Segmented({ label, value, options, onChange }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-1">
+      <span className="text-[12px] text-neutral-600">{label}</span>
+      <ToggleGroup type="single" variant="outline" size="sm" value={String(value)} onValueChange={(v) => v && onChange(v)}>
+        {options.map(([v, l]) => <ToggleGroupItem key={v} value={v} className="px-2.5 text-[11px]">{l}</ToggleGroupItem>)}
+      </ToggleGroup>
+    </div>
+  );
+}
+
+// Only offers the weights the chosen font really has.
+function WeightPicker({ font, value, onChange }) {
+  const weights = fontByName(font)?.weights || [400, 700];
+  if (weights.length < 2) return null;
+  const names = { 100: 'Thin', 200: 'ExtraLight', 300: 'Light', 400: 'Regular', 500: 'Medium', 600: 'SemiBold', 700: 'Bold', 800: 'ExtraBold', 900: 'Black' };
+  const nearest = weights.reduce((a, b) => (Math.abs(b - value) < Math.abs(a - value) ? b : a));
+  return <SelectField label="Weight" value={nearest} options={weights.map((w) => ({ value: w, label: names[w] || w }))} onChange={onChange} />;
 }
 
 function FinishTab({ engine }) {
@@ -164,7 +194,9 @@ function FinishTab({ engine }) {
         <div className="grid grid-cols-2 gap-1.5">
           {Object.keys(FX_PRESETS).map((name) => (
             <Button key={name} variant={active === name ? 'default' : 'outline'} size="sm" className="h-8 justify-start text-[12px] font-normal"
-              onClick={() => engine.applyFx(presetValues(name))}>{name}</Button>
+              onClick={() => engine.applyFx(presetValues(name))}
+              onMouseEnter={() => engine.previewFx(presetValues(name))}
+              onMouseLeave={() => engine.endPreview()}>{name}</Button>
           ))}
         </div>
         {!active && <p className="mt-2 text-[11px] text-neutral-400">Custom mix</p>}
@@ -195,13 +227,29 @@ export default function Inspector() {
   const engine = useEngine();
   const mode = engine.mode;
   if (!mode) return <aside className="w-[300px] shrink-0 border-l border-neutral-200 bg-white" />;
-  const group = MODES.find((m) => m.id === mode.id)?.group;
+  const meta = MODES.find((m) => m.id === mode.id);
   return (
     <aside className="flex h-[45vh] w-full shrink-0 flex-col border-t border-neutral-200 bg-white md:h-auto md:w-[300px] md:border-l md:border-t-0">
       <div className="px-4 pb-3 pt-4">
-        <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-400">{group}</div>
         <h2 className="text-[15px] font-semibold tracking-tight">{mode.name}</h2>
         {mode.hint && <p className="mt-0.5 text-[12px] text-neutral-500">{mode.hint}</p>}
+        {meta && (
+          <details className="group mt-2 text-[12px]">
+            <summary className="flex cursor-pointer list-none items-center gap-1 text-neutral-500 hover:text-neutral-800">
+              <ChevronRight className="size-3.5 transition-transform group-open:rotate-90" /> How it works
+            </summary>
+            <div className="mt-2 space-y-2 rounded-md bg-neutral-50 p-2.5 leading-snug">
+              <p className="text-neutral-700">{meta.description}</p>
+              <p className="text-neutral-500">{meta.technique}</p>
+              <div className="flex flex-wrap items-center gap-1">
+                {meta.tags.map((t) => <span key={t} className="rounded-full bg-white px-1.5 py-0.5 text-[10.5px] text-neutral-500 ring-1 ring-neutral-200">{t}</span>)}
+                <a href={sourceUrl(modeFile(meta))} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-neutral-500 underline-offset-2 hover:text-neutral-900 hover:underline">
+                  <Code2 className="size-3" /> View source
+                </a>
+              </div>
+            </div>
+          </details>
+        )}
       </div>
       <Tabs defaultValue="shape" className="flex min-h-0 flex-1 flex-col gap-0">
         <div className="px-4 pb-1">
