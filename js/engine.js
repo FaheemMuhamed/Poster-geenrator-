@@ -45,7 +45,7 @@ export const DEFAULT_STATE = {
   grain: 0.25,
   fx: { ...FX_DEFAULTS },
   motion: { speed: 1, mouse: 1, paused: false },
-  ui: { ambient: true },
+  ui: { ambient: true, locks: {} }, // viewer preferences, not part of a poster's link
   text: {
     show: true,
     lines: { title: 'Sleepwalker', subtitle: 'Release Party', date: '03.26.26', venue: 'Plot Gallery', footer: 'Los Angeles · 7–10 PM' },
@@ -117,7 +117,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
   // Hover previews keep a copy of what they changed and put it back afterwards.
   let preview = null;
   function beginPreview() {
-    if (!preview) preview = { fx: { ...state.fx }, colors: { ...state.colors } };
+    if (!preview) preview = { fx: { ...state.fx }, colors: { ...state.colors }, params: mode ? { ...state.params[mode.id] } : null, modeId: mode?.id };
   }
   function endPreview() {
     if (!preview) return;
@@ -127,8 +127,32 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     const paletteChanged = Object.keys(p.colors).some((k) => p.colors[k] !== state.colors[k]);
     Object.assign(state.colors, p.colors);
     if (paletteChanged) { typeDirty = true; instance?.onParam?.('palette'); }
+    if (p.params && mode?.id === p.modeId) restoreParams(p.params);
     emit();
   }
+
+  // Puts param values back (used by previews); rebuilds once if a structural param changed.
+  function restoreParams(values) {
+    const cur = state.params[mode.id];
+    const changedKeys = Object.keys(values).filter((k) => cur[k] !== values[k]);
+    if (!changedKeys.length) return;
+    Object.assign(cur, values);
+    if (changedKeys.some((k) => mode.params[k]?.rebuild)) rebuildSoon();
+    changedKeys.forEach((k) => instance?.onParam?.(k));
+  }
+
+  // A random value within a param's range (respecting its step and options).
+  function randomValue(def) {
+    const r = Math.random();
+    if (def.options) return def.options[Math.floor(r * def.options.length)];
+    if (typeof def.value === 'boolean') return r > 0.5;
+    if (typeof def.value === 'number' && def.min !== undefined) {
+      const v = def.min + r * (def.max - def.min);
+      return def.step ? Math.round(v / def.step) * def.step : v;
+    }
+    return def.value;
+  }
+  const locked = (key) => !!state.ui.locks?.[mode?.id]?.includes(key);
 
   // ---------- Pointer (shared with modes) ----------
   // x, y are 0..1 across the poster (y down). vx, vy is the movement since last frame.
@@ -311,6 +335,35 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
       instance?.onParam?.(key);
       changed();
     },
+    // Section tools: reset or shuffle just some params; locks protect params from shuffles.
+    resetParams(keys) {
+      if (!mode) return;
+      const defs = mode.params;
+      const ks = keys || Object.keys(defs);
+      restoreParams(Object.fromEntries(ks.map((k) => [k, defs[k].value])));
+      changed();
+    },
+    randomiseParams(keys) {
+      if (!mode) return;
+      const defs = mode.params;
+      const next = {};
+      for (const k of keys) if (!locked(k) && !defs[k].noShuffle && !(typeof defs[k].value === 'string' && !defs[k].options)) next[k] = randomValue(defs[k]);
+      restoreParams(next);
+      changed();
+    },
+    isLocked: (key) => locked(key),
+    toggleLock(key) {
+      if (!mode) return;
+      const locks = (state.ui.locks ||= {});
+      const list = new Set(locks[mode.id] || []);
+      list.has(key) ? list.delete(key) : list.add(key);
+      locks[mode.id] = [...list];
+      emit();
+    },
+    // One-click looks for the current effect (mode.presets), with hover previews.
+    previewPreset(values) { if (!mode) return; beginPreview(); restoreParams(values); emit(); },
+    applyPreset(values) { if (!mode) return; preview = null; restoreParams(values); changed(); },
+
     setSeed(seed) { state.seed = seed; rebuildSoon(); changed(); },
     randomise() { state.seed = Math.floor(Math.random() * 99999); if (mode) buildInstance(); changed(); },
     surprise() {
@@ -321,12 +374,8 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
       Object.assign(state.colors, PALETTES[state.palette]);
       const values = state.params[mode.id];
       for (const [k, def] of Object.entries(mode.params || {})) {
-        if (def.noShuffle) continue;
-        if (def.options) values[k] = def.options[Math.floor(r() * def.options.length)];
-        else if (typeof def.value === 'number' && def.min !== undefined) {
-          const v = def.min + r() * (def.max - def.min);
-          values[k] = def.step ? Math.round(v / def.step) * def.step : v;
-        } else if (typeof def.value === 'boolean') values[k] = r() > 0.5;
+        if (def.noShuffle || locked(k) || typeof def.value === 'string' && !def.options) continue;
+        values[k] = randomValue(def);
       }
       state.seed = Math.floor(r() * 99999);
       buildInstance();

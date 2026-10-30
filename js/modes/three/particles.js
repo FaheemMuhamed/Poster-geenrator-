@@ -4,7 +4,7 @@ import { createThreeStage, paletteUniform, pointerNDC, THREE } from '../../share
 import { NOISE, PALETTE_GLSL } from '../../shaders/noise.glsl.js';
 
 const params = {
-  count:  { value: 70000, min: 5000, max: 250000, step: 1000, label: 'Particles', rebuild: true },
+  count:  { value: 70000, min: 5000, max: 250000, step: 1000, label: 'Particle count', rebuild: true },
   arc:    { value: 0.75, min: 0.1, max: 1, step: 0.01, label: 'Arc length' },
   radius: { value: 2.2, min: 0.5, max: 5, step: 0.01, label: 'Radius' },
   spread: { value: 1.6, min: 0, max: 4, step: 0.01, label: 'Band width' },
@@ -13,7 +13,7 @@ const params = {
   noise:  { value: 0.6, min: 0, max: 3, step: 0.01, label: 'Turbulence' },
   bands:  { value: 1.4, min: 0.2, max: 6, step: 0.01, label: 'Colour bands' },
   size:   { value: 2.2, min: 0.3, max: 8, step: 0.01, label: 'Point size' },
-  spin:   { value: 0.6, min: -3, max: 3, step: 0.01, label: 'Spin speed' },
+  spin:   { value: 0.6, min: -3, max: 3, step: 0.01, label: 'Speed' },
   offsetX:{ value: 1.4, min: -4, max: 4, step: 0.01, label: 'Position X' },
   tilt:   { value: 0.5, min: -1.6, max: 1.6, step: 0.01, label: 'Tilt' },
   autoRotate: { value: true, label: 'Auto rotate' },
@@ -71,6 +71,20 @@ export default {
   engine: 'three',
   hint: 'Drag to orbit, scroll to zoom',
   params,
+  controls: {
+    essentials: ['count', 'twist', 'noise', 'size'],
+    form: ['arc', 'radius', 'spread', 'thick', 'offsetX', 'tilt'],
+    motion: ['spin', 'autoRotate'],
+    interaction: [],
+    colour: ['bands'],
+    type: [],
+  },
+  presets: {
+    'Calm ring': { twist: 0.5, noise: 0.2, spin: 0.2, arc: 1 },
+    'Storm': { twist: 5, noise: 2.2, spin: 1.8, thick: 1.2 },
+    'Fine dust': { size: 0.8, spread: 2.8, noise: 1, bands: 3 },
+  },
+  interactions: { hover: 'pushes particles away from the cursor' },
   create(ctx) {
     const P = ctx.params;
     const stage = createThreeStage(ctx, { orbit: true, cameraZ: 7 });

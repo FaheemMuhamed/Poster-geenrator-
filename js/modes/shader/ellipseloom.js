@@ -8,15 +8,15 @@ import { shaderSketch } from '../../shared/codegen.js';
 import { THREE } from '../../shared/threeStage.js';
 
 const params = {
-  rows:     { value: 12, min: 3, max: 40, step: 1, label: 'Rows' },
-  cols:     { value: 9, min: 3, max: 30, step: 1, label: 'Columns' },
+  rows:     { value: 12, min: 3, max: 40, step: 1, label: 'Row count' },
+  cols:     { value: 9, min: 3, max: 30, step: 1, label: 'Column count' },
   persp:    { value: 0.55, min: 0, max: 1, step: 0.01, label: 'Perspective' },
   sym:      { value: 'Vertical', options: ['Vertical', 'Both', 'None'], label: 'Symmetry' },
   steps:    { value: 6, min: 0, max: 16, step: 1, label: 'Rows per step' },
   size:     { value: 0.9, min: 0.3, max: 1.3, step: 0.01, label: 'Ellipse size' },
   gap:      { value: 0.08, min: 0, max: 0.6, step: 0.01, label: 'Row gap' },
-  flow:     { value: 1, min: -3, max: 3, step: 0.01, label: 'Flow speed' },
-  hueShift: { value: 0, min: 0, max: 1, step: 0.01, label: 'Colour shift' },
+  flow:     { value: 1, min: -3, max: 3, step: 0.01, label: 'Speed' },
+  hueShift: { value: 0, min: 0, max: 1, step: 0.01, label: 'Hue shift' },
 };
 
 const fragment = /* glsl */ `
@@ -116,9 +116,18 @@ export default {
   hint: 'Hover to move the horizon, hold to speed the loom, click to pulse',
   params,
   controls: {
-    essentials: ['rows', 'cols', 'persp', 'sym'],
-    groups: { Weave: ['steps', 'size', 'gap', 'hueShift'], Motion: ['flow'] },
+    essentials: ['rows', 'cols', 'persp', 'flow'],
+    form: ['sym', 'steps', 'size', 'gap'],
+    motion: [],
+    interaction: [],
+    colour: ['hueShift'],
   },
+  presets: {
+    'Deep tunnel': { rows: 28, cols: 18, persp: 0.95, sym: 'Both', size: 0.8 },
+    'Flat weave': { rows: 8, cols: 6, persp: 0.1, steps: 0, gap: 0.2 },
+    'Fast loom': { rows: 16, flow: 2.5, steps: 4, size: 1.1, sym: 'None' },
+  },
+  interactions: { hover: 'moves the vanishing point', click: 'sends a swelling pulse out from the horizon' },
   create(ctx) {
     const pulse = new THREE.Vector4(0, 0, 0, 0);
     const hold = new THREE.Vector2(0, 1);

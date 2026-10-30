@@ -11,13 +11,13 @@ const BASE_Y = 0.03;   // lowest ground level above the cut
 const params = {
   height:   { value: 0.75, min: 0.2, max: 1.8, step: 0.01, label: 'Mountain height' },
   rough:    { value: 0.5, min: 0.3, max: 0.8, step: 0.01, label: 'Roughness' },
-  scale:    { value: 1.15, min: 0.7, max: 3.5, step: 0.01, label: 'Feature scale' },
+  scale:    { value: 1.15, min: 0.7, max: 3.5, step: 0.01, label: 'Feature scale', unit: '×' },
   water:    { value: 0.32, min: 0, max: 1, step: 0.01, label: 'Water level' },
-  bands:    { value: 9, min: 2, max: 28, step: 1, label: 'Strata bands' },
+  bands:    { value: 9, min: 2, max: 28, step: 1, label: 'Band count' },
   thick:    { value: 0.55, min: 0.12, max: 1.2, step: 0.01, label: 'Slab thickness' },
-  contours: { value: 0.35, min: 0, max: 1, step: 0.01, label: 'Contour lines' },
-  spin:     { value: 0.5, min: 0, max: 3, step: 0.01, label: 'Auto-rotate' },
-  erode:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Hover erosion' },
+  contours: { value: 0.35, min: 0, max: 1, step: 0.01, label: 'Contour amount' },
+  spin:     { value: 0.5, min: 0, max: 3, step: 0.01, label: 'Speed' },
+  erode:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Erosion strength' },
 };
 
 // Shared bits: accent picker, strata coordinate and hash.
@@ -224,8 +224,16 @@ export default {
   params,
   controls: {
     essentials: ['height', 'rough', 'water', 'bands'],
-    groups: { Land: ['scale', 'contours', 'erode'], Slab: ['thick', 'spin'] },
+    form: ['scale', 'thick', 'contours'],
+    motion: ['spin'],
+    interaction: ['erode'],
   },
+  presets: {
+    'Alpine': { height: 1.6, rough: 0.7, water: 0.1, contours: 0.2 },
+    'Archipelago': { height: 0.6, water: 0.7, scale: 2.2 },
+    'Layer cake': { bands: 22, thick: 1.1, contours: 0.8, rough: 0.35 },
+  },
+  interactions: { hover: 'erodes a dip with a raised rim under the cursor', click: 'grows a new range of mountains' },
   create(ctx) {
     const P = ctx.params;
     const stage = createThreeStage(ctx, { orbit: true, fov: 30, cameraZ: 9 });

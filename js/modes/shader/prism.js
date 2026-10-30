@@ -9,13 +9,13 @@ const params = {
   beamWidth:  { value: 0.03, min: 0.005, max: 0.12, step: 0.001, label: 'Beam width' },
   dispersion: { value: 1, min: 0, max: 3, step: 0.01, label: 'Dispersion' },
   flare:      { value: 1, min: 0, max: 2, step: 0.01, label: 'Flare amount' },
-  smear:      { value: 0.7, min: 0, max: 1.5, step: 0.01, label: 'Paint smear' },
-  tilt:       { value: 0, min: -30, max: 30, step: 1, label: 'Beam tilt' },
-  sparkle:    { value: 0.8, min: 0, max: 2, step: 0.01, label: 'Glints' },
-  leak:       { value: 0.6, min: 0, max: 1.5, step: 0.01, label: 'Light leaks' },
+  smear:      { value: 0.7, min: 0, max: 1.5, step: 0.01, label: 'Smear amount' },
+  tilt:       { value: 0, min: -30, max: 30, step: 1, label: 'Beam tilt', unit: '°' },
+  sparkle:    { value: 0.8, min: 0, max: 2, step: 0.01, label: 'Glint amount' },
+  leak:       { value: 0.6, min: 0, max: 1.5, step: 0.01, label: 'Leak amount' },
   leakColour: { value: 'C2', options: ['C1', 'C2', 'C3', 'C4'], label: 'Leak colour' },
-  grain:      { value: 0.5, min: 0, max: 1.5, step: 0.01, label: 'Grain' },
-  burst:      { value: 1, min: 0, max: 2, step: 0.01, label: 'Click burst' },
+  grain:      { value: 0.5, min: 0, max: 1.5, step: 0.01, label: 'Grain amount' },
+  burst:      { value: 1, min: 0, max: 2, step: 0.01, label: 'Burst strength' },
 };
 
 const fragment = /* glsl */ `
@@ -207,11 +207,17 @@ export default {
   params,
   controls: {
     essentials: ['beamWidth', 'dispersion', 'flare', 'smear'],
-    groups: {
-      Light: ['tilt', 'sparkle', 'burst'],
-      Film: ['leak', 'leakColour', 'grain'],
-    },
+    form: ['tilt', 'sparkle', 'leak', 'grain'],
+    motion: [],
+    interaction: ['burst'],
+    colour: ['leakColour'],
   },
+  presets: {
+    'Soft glow': { beamWidth: 0.06, dispersion: 0.5, flare: 0.6, leak: 1, grain: 0.3 },
+    'Laser': { beamWidth: 0.008, dispersion: 2.2, flare: 1.6, sparkle: 1.5 },
+    'Oil painting': { smear: 1.4, flare: 0.4, leak: 0.3, grain: 0.9 },
+  },
+  interactions: { hover: 'steers the beam and brightens its flare', click: 'bursts rainbow rays from the cursor' },
   create(ctx) {
     const beam = new THREE.Vector3(0, 0.1, 0);
     const burst = new THREE.Vector4(0, 0, -99, 0);

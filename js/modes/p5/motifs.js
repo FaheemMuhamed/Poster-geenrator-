@@ -100,18 +100,29 @@ export default {
   medium: 'image',
   hint: 'Hover to swell and turn the motifs · click to ripple them',
   params: {
-    cells:    { value: 26, min: 8, max: 52, step: 1, label: 'Cells across' },
+    cells:    { value: 26, min: 8, max: 52, step: 1, label: 'Cell count' },
     style:    { value: 'Pop mosaic', options: ['Pop mosaic', 'Grid study'], label: 'Style' },
     variety:  { value: 0.45, min: 0, max: 1, step: 0.01, label: 'Motif variety' },
     colorMap: { value: 'Palette', options: ['Palette', 'Photo'], label: 'Colour mapping' },
-    gap:      { value: 0.1, min: 0, max: 0.45, step: 0.01, label: 'Gap' },
-    rotation: { value: 0.5, min: 0, max: 1, step: 0.01, label: 'Rotation' },
+    gap:      { value: 0.1, min: 0, max: 0.45, step: 0.01, label: 'Gap size' },
+    rotation: { value: 0.5, min: 0, max: 1, step: 0.01, label: 'Rotation amount' },
     drift:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Idle motion' },
   },
   controls: {
-    essentials: ['cells', 'style', 'variety', 'colorMap'],
-    groups: { Shape: ['gap', 'rotation'], Motion: ['drift'] },
+    essentials: ['cells', 'style', 'variety', 'drift'],
+    form: ['gap', 'rotation'],
+    motion: [],
+    interaction: [],
+    image: [],
+    colour: ['colorMap'],
+    type: [],
   },
+  presets: {
+    'Fine mosaic': { cells: 44, gap: 0.05, variety: 0.3, drift: 0.6 },
+    'Big shapes': { cells: 12, gap: 0.18, variety: 0.8, rotation: 0.8 },
+    'Calm grid': { style: 'Grid study', drift: 0.2, rotation: 0.1, variety: 0.15 },
+  },
+  interactions: { hover: 'swells and turns the motifs under the cursor', click: 'sends a ripple that flips the motifs' },
 
   create(ctx) {
     const P = ctx.params;

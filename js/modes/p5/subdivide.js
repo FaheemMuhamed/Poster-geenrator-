@@ -24,19 +24,30 @@ export default {
   hint: 'Hover for a detail lens · click to re-split from that point',
   params: {
     detail:   { value: 0.62, min: 0, max: 1, step: 0.01, label: 'Detail' },
-    minSize:  { value: 4, min: 2, max: 40, step: 1, label: 'Min cell size' },
-    maxDepth: { value: 13, min: 3, max: 18, step: 1, label: 'Max depth' },
+    minSize:  { value: 4, min: 2, max: 40, step: 1, label: 'Smallest cell' },
+    maxDepth: { value: 13, min: 3, max: 18, step: 1, label: 'Split depth' },
     style:    { value: 'Binary', options: ['Binary', 'Quad'], label: 'Split style' },
-    colour:   { value: 'Flat', options: ['Flat', 'Photo', 'Palette'], label: 'Colour' },
-    outline:  { value: 0.6, min: 0, max: 2.5, step: 0.05, label: 'Outline' },
-    bias:     { value: 0.35, min: -1, max: 1, step: 0.01, label: 'Tall ↔ wide bias' },
+    colour:   { value: 'Flat', options: ['Flat', 'Photo', 'Palette'], label: 'Cell colour' },
+    outline:  { value: 0.6, min: 0, max: 2.5, step: 0.05, label: 'Outline thickness' },
+    bias:     { value: 0.35, min: -1, max: 1, step: 0.01, label: 'Tall/wide bias' },
     lens:     { value: 0.18, min: 0.05, max: 0.5, step: 0.01, label: 'Lens size' },
-    breathe:  { value: 0.35, min: 0, max: 1, step: 0.01, label: 'Breathe' },
+    breathe:  { value: 0.35, min: 0, max: 1, step: 0.01, label: 'Breathing amount' },
   },
   controls: {
-    essentials: ['detail', 'minSize', 'style', 'colour'],
-    groups: { Structure: ['maxDepth', 'bias'], Look: ['outline'], Motion: ['lens', 'breathe'] },
+    essentials: ['detail', 'minSize', 'style', 'outline'],
+    form: ['maxDepth', 'bias'],
+    motion: ['breathe'],
+    interaction: ['lens'],
+    image: [],
+    colour: ['colour'],
+    type: [],
   },
+  presets: {
+    'Fine grid': { detail: 0.85, minSize: 2, maxDepth: 17, outline: 0.3 },
+    'Big blocks': { detail: 0.3, minSize: 16, style: 'Quad', outline: 1.6, colour: 'Palette' },
+    'Photo cells': { detail: 0.7, minSize: 4, colour: 'Photo', outline: 0.2, breathe: 0.6 },
+  },
+  interactions: { hover: 'opens finer cells under a detail lens', click: 're-splits the picture outward from that point' },
 
   create(ctx) {
     const P = ctx.params;

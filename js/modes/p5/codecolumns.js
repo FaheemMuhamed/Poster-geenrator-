@@ -37,20 +37,30 @@ export default {
   ownsText: true,
   hint: 'Hover to scatter the tiles · click to knock a column over',
   params: {
-    columns:  { value: 16, min: 4, max: 36, step: 1, label: 'Columns', rebuild: true },
-    tile:     { value: 1, min: 0.6, max: 1.6, step: 0.01, label: 'Tile size' },
-    fall:     { value: 1, min: 0.2, max: 3, step: 0.01, label: 'Fall speed' },
-    scatter:  { value: 0.6, min: 0, max: 1.5, step: 0.01, label: 'Scatter' },
+    columns:  { value: 16, min: 4, max: 36, step: 1, label: 'Column count', rebuild: true },
+    tile:     { value: 1, min: 0.6, max: 1.6, step: 0.01, label: 'Tile size', unit: '×' },
+    fall:     { value: 1, min: 0.2, max: 3, step: 0.01, label: 'Speed' },
+    scatter:  { value: 0.6, min: 0, max: 1.5, step: 0.01, label: 'Scatter amount' },
     variety:  { value: 0.75, min: 0, max: 1, step: 0.01, label: 'Colour variety' },
     length:   { value: 1, min: 0.3, max: 1.4, step: 0.01, label: 'Column length' },
-    ground:   { value: 0.05, min: 0, max: 0.25, step: 0.005, label: 'Ground offset' },
+    ground:   { value: 0.05, min: 0, max: 0.25, step: 0.005, label: 'Ground height' },
     hold:     { value: 7, min: 2, max: 20, step: 0.5, label: 'Hold time' },
     face:     { value: 'Mono', options: ['Mono', 'Poster font'], label: 'Letter font' },
   },
   controls: {
     essentials: ['columns', 'tile', 'fall', 'scatter'],
-    groups: { Columns: ['length', 'variety', 'face'], Ground: ['ground', 'hold'] },
+    form: ['length', 'ground'],
+    motion: ['hold'],
+    interaction: [],
+    colour: ['variety'],
+    type: ['face'],
   },
+  presets: {
+    'Downpour': { tile: 0.8, fall: 2.4, scatter: 1.2, length: 1.3 },
+    'Big tiles': { tile: 1.5, scatter: 0.3, variety: 0.4, length: 0.7 },
+    'Calm': { fall: 0.5, scatter: 0.1, hold: 14, variety: 0.2 },
+  },
+  interactions: { hover: 'shoves nearby tiles aside', click: 'knocks the nearest column over and drops in a new word' },
 
   create(ctx) {
     const P = ctx.params;

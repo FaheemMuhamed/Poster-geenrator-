@@ -18,17 +18,27 @@ export default {
   params: {
     shape:     { value: 'Hourglass', options: ['Hourglass', 'Diamond', 'Waves', 'Title'], label: 'Shape' },
     glyph:     { value: 'oo', label: 'Glyph', noShuffle: true },
-    grid:      { value: 15, min: 6, max: 30, step: 1, label: 'Grid size', rebuild: true },
-    glyphSize: { value: 1, min: 0.4, max: 1.6, step: 0.01, label: 'Glyph size' },
+    grid:      { value: 15, min: 6, max: 30, step: 1, label: 'Column count', rebuild: true },
+    glyphSize: { value: 1, min: 0.4, max: 1.6, step: 0.01, label: 'Glyph size', unit: '×' },
     contrast:  { value: 1, min: 0.2, max: 1, step: 0.01, label: 'Shape contrast' },
-    colour:    { value: 'Accent 1', options: ['Accent 1', 'Accent 2', 'Accent 3', 'Accent 4', 'Ink', 'Mixed'], label: 'Colour' },
-    wobble:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Wobble' },
+    colour:    { value: 'Accent 1', options: ['Accent 1', 'Accent 2', 'Accent 3', 'Accent 4', 'Ink', 'Mixed'], label: 'Glyph colour' },
+    wobble:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Wobble amount' },
     repel:     { value: 1, min: 0, max: 3, step: 0.01, label: 'Repel strength' },
   },
   controls: {
-    essentials: ['shape', 'glyph', 'grid', 'colour'],
-    groups: { Form: ['glyphSize', 'contrast'], Motion: ['wobble', 'repel'] },
+    essentials: ['shape', 'grid', 'glyphSize', 'contrast'],
+    form: [],
+    motion: ['wobble'],
+    interaction: ['repel'],
+    colour: [],
+    type: ['glyph', 'colour'],
   },
+  presets: {
+    'Soft': { glyphSize: 0.8, contrast: 0.4, wobble: 0.5 },
+    'Bold': { shape: 'Diamond', glyphSize: 1.5, contrast: 1, colour: 'Ink' },
+    'Lively': { shape: 'Waves', wobble: 2.6, repel: 2.5, colour: 'Mixed' },
+  },
+  interactions: { hover: 'pushes glyphs away from the cursor', click: 'bursts the glyphs outward from the click' },
 
   create(ctx) {
     const P = ctx.params;

@@ -7,15 +7,15 @@ import { shaderSketch } from '../../shared/codegen.js';
 import { THREE } from '../../shared/threeStage.js';
 
 const params = {
-  layers:   { value: 30, min: 8, max: 90, step: 1, label: 'Layers' },
-  fold:     { value: 1, min: 0, max: 2.5, step: 0.01, label: 'Fold' },
-  warp:     { value: 0.6, min: 0, max: 2.5, step: 0.01, label: 'Warp' },
-  hatch:    { value: 0.65, min: 0, max: 1, step: 0.01, label: 'Hatching' },
+  layers:   { value: 30, min: 8, max: 90, step: 1, label: 'Layer count' },
+  fold:     { value: 1, min: 0, max: 2.5, step: 0.01, label: 'Fold amount' },
+  warp:     { value: 0.6, min: 0, max: 2.5, step: 0.01, label: 'Warp amount' },
+  hatch:    { value: 0.65, min: 0, max: 1, step: 0.01, label: 'Hatch amount' },
   edges:    { value: 0.5, min: 0, max: 1, step: 0.01, label: 'Ink edges' },
   paper:    { value: 0.2, min: 0, max: 0.5, step: 0.01, label: 'Paper margin' },
-  hueShift: { value: 0, min: 0, max: 1, step: 0.01, label: 'Colour shift' },
-  flow:     { value: 1, min: 0, max: 4, step: 0.01, label: 'Flow speed' },
-  push:     { value: 1, min: 0, max: 2, step: 0.01, label: 'Mouse fold' },
+  hueShift: { value: 0, min: 0, max: 1, step: 0.01, label: 'Hue shift' },
+  flow:     { value: 1, min: 0, max: 4, step: 0.01, label: 'Speed' },
+  push:     { value: 1, min: 0, max: 2, step: 0.01, label: 'Push strength' },
 };
 
 const fragment = /* glsl */ `
@@ -118,8 +118,17 @@ export default {
   params,
   controls: {
     essentials: ['layers', 'fold', 'warp', 'paper'],
-    groups: { Texture: ['hatch', 'edges', 'hueShift'], Motion: ['flow', 'push'] },
+    form: ['hatch', 'edges'],
+    motion: ['flow'],
+    interaction: ['push'],
+    colour: ['hueShift'],
   },
+  presets: {
+    'Fine strata': { layers: 80, fold: 0.6, hatch: 0.9, edges: 0.3 },
+    'Folded': { layers: 24, fold: 2.2, warp: 1.5 },
+    'Bold bands': { layers: 12, hatch: 0.2, edges: 0.9, paper: 0 },
+  },
+  interactions: { hover: 'squeezes and kinks the layers, harder while held', click: 'sends a tremor through the layers' },
   create(ctx) {
     const pulse = new THREE.Vector4(-10, -10, 0, 0);
     const hold = new THREE.Vector2(0, 1);

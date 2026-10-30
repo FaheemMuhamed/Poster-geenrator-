@@ -6,7 +6,7 @@ import { Section } from './Field.jsx';
 import { cn } from '@/lib/utils';
 
 // The picture an image effect works on. Uploads and the webcam never leave this device.
-export default function SourcePicker({ engine }) {
+export default function SourcePicker({ engine, extra = null }) {
   const fileRef = useRef(null);
   const src = engine.source;
   const live = src.kind === 'webcam';
@@ -34,6 +34,7 @@ export default function SourcePicker({ engine }) {
       <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
         {src.kind === 'upload' ? `Using ${src.name}. ` : ''}Drop an image onto the visual, or paste one. Your images stay on this device and aren't saved in share links.
       </p>
+      {extra && <div className="mt-2">{extra}</div>}
     </Section>
   );
 }

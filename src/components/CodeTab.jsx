@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Copy, Download, ExternalLink, Maximize2 } from 'lucide-react';
+import { Code2, Copy, Download, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -23,7 +23,26 @@ function CodeBlock({ source, className = '' }) {
   );
 }
 
-// Standalone, runnable code for the current visual with today's settings inlined.
+// The "Code" button in the inspector header: standalone, runnable code for the current
+// visual with today's settings inlined, in a wide dialog.
+export function CodeButton({ engine }) {
+  const { mode } = engine;
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="h-7 shrink-0 gap-1.5 px-2 text-[12px]"><Code2 className="size-3.5" /> Code</Button>
+      </DialogTrigger>
+      <DialogContent className="grid max-h-[88vh] max-w-3xl grid-cols-[minmax(0,1fr)] sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle className="text-[17px] font-semibold tracking-tight">{mode.name} code</DialogTitle>
+          <DialogDescription className="sr-only">Standalone code for this visual</DialogDescription>
+        </DialogHeader>
+        <CodeTab engine={engine} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function CodeTab({ engine }) {
   const { mode, state } = engine;
   const meta = MODES.find((m) => m.id === mode.id);
@@ -37,7 +56,7 @@ export default function CodeTab({ engine }) {
 
   if (!code) {
     return (
-      <div className="space-y-3 p-4 text-[12px] leading-relaxed">
+      <div className="space-y-3 text-[12px] leading-relaxed">
         <p className="text-foreground">A standalone version of {mode.name} is on its way.</p>
         <p className="text-muted-foreground">Until then, you can read how Morva draws it in the source file.</p>
         <Button variant="outline" size="sm" asChild className="gap-1.5">
@@ -58,7 +77,7 @@ export default function CodeTab({ engine }) {
   };
 
   return (
-    <div className="space-y-3 p-4">
+    <div className="min-w-0 space-y-3">
       <div className="space-y-1">
         <p className="text-[12px] leading-snug text-foreground">A single HTML file that runs on its own, with your current settings built in.</p>
         <p className="text-[11px] text-muted-foreground">
@@ -66,25 +85,13 @@ export default function CodeTab({ engine }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="flex flex-wrap gap-1.5">
         <Button size="sm" className="h-8 gap-1.5 text-[12px]" onClick={copy}><Copy className="size-3.5" /> Copy</Button>
         <Button size="sm" variant="outline" className="h-8 gap-1.5 text-[12px]" onClick={() => save(code.source, code.filename)}><Download className="size-3.5" /> Download</Button>
-        <Button size="sm" variant="outline" className="h-8 gap-1.5 text-[12px]" onClick={() => openInCodePen(code.pen)}><ExternalLink className="size-3.5" /> CodePen</Button>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="sm" variant="outline" className="h-8 gap-1.5 text-[12px]"><Maximize2 className="size-3.5" /> Full view</Button>
-          </DialogTrigger>
-          <DialogContent className="grid max-h-[85vh] max-w-3xl grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] sm:max-w-3xl">
-            <DialogHeader>
-              <DialogTitle className="text-[17px] font-semibold tracking-tight">{mode.name}</DialogTitle>
-              <DialogDescription className="text-[12px]">{code.filename} · {code.library} · {lines} lines</DialogDescription>
-            </DialogHeader>
-            <CodeBlock source={code.source} className="min-h-0" />
-          </DialogContent>
-        </Dialog>
+        <Button size="sm" variant="outline" className="h-8 gap-1.5 text-[12px]" onClick={() => openInCodePen(code.pen)}><ExternalLink className="size-3.5" /> Open in CodePen</Button>
       </div>
 
-      <CodeBlock source={code.source} className="max-h-[420px]" />
+      <CodeBlock source={code.source} className="max-h-[60vh]" />
     </div>
   );
 }

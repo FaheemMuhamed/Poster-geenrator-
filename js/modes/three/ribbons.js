@@ -7,11 +7,11 @@ const COLOR_MODES = ['Along length', 'Per ribbon', 'Ink + accent'];
 const SEGMENTS = 120;
 
 const params = {
-  count:   { value: 70, min: 20, max: 150, step: 1, label: 'Ribbons', rebuild: true },
-  width:   { value: 1.4, min: 0.1, max: 4, step: 0.01, label: 'Width' },
+  count:   { value: 70, min: 20, max: 150, step: 1, label: 'Ribbon count', rebuild: true },
+  width:   { value: 1.4, min: 0.1, max: 4, step: 0.01, label: 'Ribbon width' },
   length:  { value: 0.65, min: 0.1, max: 1, step: 0.01, label: 'Length' },
   turb:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Turbulence' },
-  speed:   { value: 0.4, min: 0, max: 2, step: 0.01, label: 'Flow speed' },
+  speed:   { value: 0.4, min: 0, max: 2, step: 0.01, label: 'Speed' },
   spread:  { value: 0.75, min: 0, max: 3, step: 0.01, label: 'Spread' },
   twist:   { value: 0.6, min: 0, max: 3, step: 0.01, label: 'Twist' },
   colorMode: { value: 'Along length', options: COLOR_MODES, label: 'Colour mode' },
@@ -91,6 +91,19 @@ export default {
   engine: 'three',
   hint: 'Drag to orbit, move to pull the ribbons',
   params,
+  controls: {
+    essentials: ['count', 'turb', 'twist', 'width'],
+    form: ['length', 'spread', 'fog'],
+    motion: ['speed'],
+    interaction: [],
+    colour: ['colorMode', 'shift'],
+  },
+  presets: {
+    'Silk': { turb: 0.4, twist: 0.3, width: 2.2, speed: 0.25 },
+    'Storm': { turb: 2.4, twist: 1.8, spread: 1.6, speed: 1.2 },
+    'Threads': { width: 0.3, length: 0.9, twist: 1.2, colorMode: 'Per ribbon' },
+  },
+  interactions: { hover: 'pulls the ribbons toward the cursor', click: 'pulls harder while held' },
   create(ctx) {
     const P = ctx.params;
     const r = ctx.rand;

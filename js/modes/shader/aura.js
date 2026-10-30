@@ -4,15 +4,15 @@ import { createFullscreenShader } from '../../shared/fullscreenShader.js';
 import { shaderSketch } from '../../shared/codegen.js';
 
 const params = {
-  scale:    { value: 0.7, min: 0.2, max: 4, step: 0.01, label: 'Scale' },
+  scale:    { value: 0.7, min: 0.2, max: 4, step: 0.01, label: 'Scale', unit: '×' },
   warp:     { value: 1.1, min: 0, max: 6, step: 0.01, label: 'Warp' },
   detail:   { value: 0.3, min: 0, max: 2, step: 0.01, label: 'Detail' },
   coverage: { value: 0.5, min: 0, max: 1, step: 0.01, label: 'Colour coverage' },
   softness: { value: 0.7, min: 0.02, max: 1.5, step: 0.01, label: 'Softness' },
   hueShift: { value: 0, min: 0, max: 1, step: 0.01, label: 'Colour shift' },
-  bands:    { value: 0, min: 0, max: 30, step: 1, label: 'Contour bands' },
-  flow:     { value: 1, min: 0, max: 4, step: 0.01, label: 'Flow speed' },
-  swirl:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Mouse swirl' },
+  bands:    { value: 0, min: 0, max: 30, step: 1, label: 'Band count' },
+  flow:     { value: 1, min: 0, max: 4, step: 0.01, label: 'Speed' },
+  swirl:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Swirl strength' },
 };
 
 const fragment = /* glsl */ `
@@ -52,6 +52,19 @@ export default {
   engine: 'three',
   hint: 'Move to swirl, hold to swirl harder',
   params,
+  controls: {
+    essentials: ['scale', 'warp', 'coverage', 'softness'],
+    form: ['detail', 'bands'],
+    motion: ['flow'],
+    interaction: ['swirl'],
+    colour: ['hueShift'],
+  },
+  presets: {
+    'Mist': { warp: 0.6, detail: 0.1, softness: 1.2, flow: 0.6 },
+    'Marble': { scale: 1.5, warp: 3, detail: 1.4, softness: 0.3 },
+    'Contours': { warp: 1.8, softness: 0.4, bands: 14 },
+  },
+  interactions: { hover: 'swirls the colours around the cursor', click: 'swirls harder while held' },
   create(ctx) {
     return createFullscreenShader(ctx, params, fragment);
   },

@@ -1,4 +1,4 @@
-import { ChevronRight, Code2, Dices } from 'lucide-react';
+import { ALargeSmall, CaseLower, CaseSensitive, CaseUpper, ChevronRight, Code2, Dices, MoveHorizontal, MoveVertical, RotateCcw, Type, TypeOutline } from 'lucide-react';
 import { modeFile } from '../../js/modes/index.js';
 import { sourceUrl } from '../config.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,14 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PALETTES, MODES } from '../../js/engine.js';
-import { controlSections } from '../../js/modes/controls.js';
+import { controlPlan, controlSections } from '../../js/modes/controls.js';
 import { fontByName } from '../../js/shared/fonts.js';
 import FontPicker from './FontPicker.jsx';
 import { useEngine } from '../useEngine.js';
-import { ParamField, Section, SelectField, SliderField, SwitchField, TextField } from './Field.jsx';
+import { NumberField, ParamField, Section, SelectField, SliderField, SwitchField, TextField } from './Field.jsx';
 import LayoutPicker from './LayoutPicker.jsx';
-import CodeTab from './CodeTab.jsx';
+import { CodeButton } from './CodeTab.jsx';
 import SourcePicker from './SourcePicker.jsx';
 import { cn } from '@/lib/utils';
 
@@ -35,36 +36,102 @@ const FX_PRESETS = {
 const presetValues = (name) => ({ ...FX_ZERO, ...FX_PRESETS[name] });
 const matchPreset = (fx) => Object.keys(FX_PRESETS).find((n) => Object.entries(presetValues(n)).every(([k, v]) => fx[k] === v));
 
-function ShapeTab({ engine }) {
+// The effect's own params for a list of keys, each with reset and lock.
+function ParamList({ engine, keys }) {
   const { state, mode } = engine;
   const values = state.params[mode.id] || {};
-  const sections = controlSections(mode);
+  return keys.map((k) => (
+    <ParamField
+      key={k} def={mode.params[k]} value={values[k]}
+      onChange={(v) => engine.setParam(k, v)}
+      onReset={() => engine.resetParams([k])}
+      locked={engine.isLocked(k)} onLock={() => engine.toggleLock(k)}
+    />
+  ));
+}
+
+// Small section tools: shuffle just this section, and reset it when something changed.
+function SectionTools({ engine, keys }) {
+  const { state, mode } = engine;
+  const values = state.params[mode.id] || {};
+  const changed = keys.some((k) => values[k] !== mode.params[k].value);
   return (
     <>
-      {mode.medium === 'image' && <SourcePicker engine={engine} />}
+      {changed && (
+        <button type="button" onClick={() => engine.resetParams(keys)} title="Reset this section" aria-label="Reset this section"
+          className="grid size-6 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
+          <RotateCcw className="size-3.5" />
+        </button>
+      )}
+      <button type="button" onClick={() => engine.randomiseParams(keys)} title="Shuffle this section (locked controls stay)" aria-label="Shuffle this section"
+        className="grid size-6 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
+        <Dices className="size-3.5" />
+      </button>
+    </>
+  );
+}
+
+// One-click looks for the effect; hovering previews them on the visual.
+function Looks({ engine }) {
+  const { mode, state } = engine;
+  const presets = Object.entries(mode.presets || {});
+  if (!presets.length) return null;
+  const values = state.params[mode.id] || {};
+  const active = presets.find(([, v]) => Object.entries(v).every(([k, x]) => values[k] === x))?.[0];
+  return (
+    <div className="flex flex-wrap gap-1.5 px-4 pt-3">
+      {presets.map(([name, v]) => (
+        <button key={name} type="button"
+          onClick={() => engine.applyPreset(v)}
+          onMouseEnter={() => engine.previewPreset(v)} onMouseLeave={() => engine.endPreview()}
+          className={cn('rounded-full px-2.5 py-1 text-[11px] ring-1 transition-colors',
+            active === name ? 'bg-foreground text-background ring-foreground' : 'text-muted-foreground ring-border hover:text-foreground')}>
+          {name}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ShapeTab({ engine }) {
+  const { state, mode } = engine;
+  const plan = controlPlan(mode);
+  const sections = controlSections(mode).filter((s) => s.keys.length || s.id === 'motion' || s.id === 'interaction');
+  const how = mode.interactions;
+  return (
+    <>
+      {mode.medium === 'image' && <SourcePicker engine={engine} extra={plan.image.length ? <ParamList engine={engine} keys={plan.image} /> : null} />}
+      <Looks engine={engine} />
       {sections.map((s) => (
-        <Section key={s.title} title={s.title} collapsible={!s.essential} defaultOpen={s.essential}>
-          {s.keys.map((k) => (
-            <ParamField key={k} def={mode.params[k]} value={values[k]} onChange={(v) => engine.setParam(k, v)} />
-          ))}
+        <Section key={s.id} title={s.title} collapsible={!s.essential} defaultOpen={s.essential}
+          aside={s.keys.length ? <SectionTools engine={engine} keys={s.keys} /> : null}>
+          {s.id === 'interaction' && how && (
+            <p className="mb-1.5 text-[11px] leading-relaxed text-muted-foreground">
+              {how.hover && <><b className="font-medium text-foreground">Hover</b> {how.hover}. </>}
+              {how.click && <><b className="font-medium text-foreground">Click</b> {how.click}.</>}
+            </p>
+          )}
+          <ParamList engine={engine} keys={s.keys} />
+          {s.id === 'motion' && <SliderField label="Overall speed" value={state.motion.speed} min={0} max={3} step={0.01} unit="×" def={{ value: 1 }} onReset={() => engine.setMotion('speed', 1)} onChange={(v) => engine.setMotion('speed', v)} />}
+          {s.id === 'interaction' && <SliderField label="Mouse strength" value={state.motion.mouse} min={0} max={3} step={0.01} unit="×" def={{ value: 1 }} onReset={() => engine.setMotion('mouse', 1)} onChange={(v) => engine.setMotion('mouse', v)} />}
         </Section>
       ))}
-      <Section title="Speed and mouse">
-        <SliderField label="Speed" value={state.motion.speed} min={0} max={3} step={0.01} onChange={(v) => engine.setMotion('speed', v)} />
-        <SliderField label="Mouse power" value={state.motion.mouse} min={0} max={3} step={0.01} onChange={(v) => engine.setMotion('mouse', v)} />
-      </Section>
       <Section title="Variation" defaultOpen>
         <div className="flex items-center gap-2">
-          <Input type="number" value={state.seed} min={0} max={99999} onChange={(e) => engine.setSeed(Number(e.target.value) || 0)} className="h-8 font-mono text-[12px]" />
+          <Input type="number" value={state.seed} min={0} max={99999} onChange={(e) => engine.setSeed(Number(e.target.value) || 0)} className="h-8 font-mono text-[12px]" aria-label="Variation number" />
           <Button variant="outline" size="sm" className="h-8 gap-1.5" onClick={() => engine.randomise()}><Dices className="size-3.5" /> New</Button>
         </div>
+        <Button variant="ghost" size="sm" className="mt-2 h-8 w-full gap-1.5 text-[12px] text-muted-foreground" onClick={() => engine.resetParams()}>
+          <RotateCcw className="size-3.5" /> Reset {mode.name}
+        </Button>
       </Section>
     </>
   );
 }
 
 function ColourTab({ engine }) {
-  const { state } = engine;
+  const { state, mode } = engine;
+  const effectKeys = controlPlan(mode).colour;
   return (
     <>
       <Section title="Palette" collapsible={false}>
@@ -83,6 +150,11 @@ function ColourTab({ engine }) {
           ))}
         </div>
       </Section>
+      {effectKeys.length > 0 && (
+        <Section title="Effect colours" defaultOpen aside={<SectionTools engine={engine} keys={effectKeys} />}>
+          <ParamList engine={engine} keys={effectKeys} />
+        </Section>
+      )}
       <Section title="Fine-tune colours">
         <div className="space-y-1">
           {COLOR_KEYS.map(([k, label]) => (
@@ -100,15 +172,46 @@ function ColourTab({ engine }) {
   );
 }
 
+// Palette swatches as a single-choice row (text colour, background colour).
+function Swatches({ state, value, onChange, label }) {
+  return (
+    <div role="radiogroup" aria-label={label} className="flex gap-1.5">
+      {COLOR_KEYS.map(([k, name]) => (
+        <button key={k} type="button" role="radio" aria-checked={value === k} title={name} aria-label={name} onClick={() => onChange(k)}
+          className={cn('size-5 rounded-full ring-1 ring-foreground/10', value === k && 'ring-2 ring-foreground ring-offset-2 ring-offset-background')}
+          style={{ background: state.colors[k] }} />
+      ))}
+    </div>
+  );
+}
+
+// Icon toggles in a row, like the case/alignment buttons of a text editor.
+function IconToggles({ value, options, onChange, label }) {
+  return (
+    <div role="radiogroup" aria-label={label} className="flex rounded-md bg-muted/70 p-0.5">
+      {options.map(([v, Icon, name]) => (
+        <button key={v} type="button" role="radio" aria-checked={value === v} title={name} aria-label={name} onClick={() => onChange(v)}
+          className={cn('grid h-7 flex-1 place-items-center rounded-[3px] transition-colors', value === v ? 'bg-card text-foreground shadow-sm dark:bg-accent' : 'text-muted-foreground hover:text-foreground')}>
+          {typeof Icon === 'string' ? <span className="text-[11px]">{Icon}</span> : <Icon className="size-3.5" />}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// The Type tab follows a standard text panel: words, typeface, typesetting, fill, then layout.
 function TypeTab({ engine }) {
-  const { state } = engine;
+  const { state, mode } = engine;
   const t = state.text;
-  const owns = engine.mode?.ownsText;
+  const owns = mode?.ownsText;
+  const effectKeys = controlPlan(mode).type;
+  const pct = (v) => `${Math.round(v * 100)}%`;
+  const perMille = (v) => `${(v / 10).toFixed(1)}%`; // tracking is stored in 1/1000 em
   return (
     <>
-      <Section title="Words" collapsible={false} aside={<Switch checked={t.show} onCheckedChange={(v) => engine.setText('show', v)} />}>
-        {owns && <p className="mb-2 rounded-md bg-muted/50 px-2.5 py-2 text-[11px] leading-relaxed text-muted-foreground">This mode sets the words inside the artwork itself.</p>}
-        <Input value={t.lines.title} onChange={(e) => engine.setText('title', e.target.value)} placeholder="Title" className="mb-1.5 h-9 text-[14px] font-medium" />
+      <Section title="Words" collapsible={false} aside={<Switch checked={t.show} onCheckedChange={(v) => engine.setText('show', v)} aria-label="Show text" />}>
+        {owns && <p className="mb-2 rounded-md bg-muted/50 px-2.5 py-2 text-[11px] leading-relaxed text-muted-foreground">This effect sets the words inside the artwork itself.</p>}
+        <Input value={t.lines.title} onChange={(e) => engine.setText('title', e.target.value)} placeholder="Title" aria-label="Title" className="mb-1.5 h-9 text-[14px] font-medium" />
         <TextField value={t.lines.subtitle} placeholder="Subtitle" onChange={(v) => engine.setText('subtitle', v)} />
         <div className="grid grid-cols-2 gap-2">
           <TextField value={t.lines.date} placeholder="Date" onChange={(v) => engine.setText('date', v)} />
@@ -116,53 +219,70 @@ function TypeTab({ engine }) {
         </div>
         <TextField value={t.lines.footer} placeholder="Footer" onChange={(v) => engine.setText('footer', v)} />
       </Section>
+
+      <Section title="Typeface" defaultOpen>
+        <div className="space-y-1.5">
+          <p className="text-[11px] text-muted-foreground">Title</p>
+          <FontPicker value={t.font} onChange={(v) => engine.setText('font', v)} />
+          <div className="grid grid-cols-2 gap-1.5">
+            <WeightPicker font={t.font} value={t.weight} onChange={(v) => engine.setText('weight', v)} compact />
+            <NumberField icon={ALargeSmall} label="Size" value={t.size} min={0.4} max={2.5} step={0.05} format={pct} parse={(s) => parseFloat(s) / 100} onChange={(v) => engine.setText('size', v)} />
+            <NumberField icon={MoveHorizontal} label="Title letter spacing" value={t.tracking} min={-100} max={300} step={5} format={perMille} parse={(s) => parseFloat(s) * 10} onChange={(v) => engine.setText('tracking', v)} />
+          </div>
+        </div>
+        <div className="mt-3 space-y-1.5">
+          <p className="text-[11px] text-muted-foreground">Text</p>
+          <FontPicker value={t.bodyFont} onChange={(v) => engine.setText('bodyFont', v)} />
+          <div className="grid grid-cols-2 gap-1.5">
+            <WeightPicker font={t.bodyFont} value={t.bodyWeight} onChange={(v) => engine.setText('bodyWeight', v)} compact />
+            <NumberField icon={MoveHorizontal} label="Text letter spacing" value={t.bodyTracking} min={-50} max={300} step={5} format={perMille} parse={(s) => parseFloat(s) * 10} onChange={(v) => engine.setText('bodyTracking', v)} />
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Typesetting" defaultOpen>
+        <div className="grid grid-cols-2 gap-1.5">
+          <NumberField icon={MoveVertical} label="Line height" value={t.leading} min={0.7} max={1.8} step={0.05} format={pct} parse={(s) => parseFloat(s) / 100} onChange={(v) => engine.setText('leading', v)} />
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-1.5">
+          <IconToggles label="Case" value={t.textCase} onChange={(v) => engine.setText('textCase', v)}
+            options={[['As typed', CaseSensitive, 'As typed'], ['UPPERCASE', CaseUpper, 'Uppercase'], ['lowercase', CaseLower, 'Lowercase']]} />
+          <IconToggles label="Title style" value={t.titleStyle} onChange={(v) => engine.setText('titleStyle', v)}
+            options={[['Fill', Type, 'Filled title'], ['Outline', TypeOutline, 'Outlined title']]} />
+        </div>
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-[12px] text-muted-foreground">Colour</span>
+          <Swatches state={state} label="Text colour" value={t.color} onChange={(k) => engine.setText('color', k)} />
+        </div>
+        <div className="mt-2">
+          <Segmented label="Blend" value={t.blend} options={[['Normal', 'Normal'], ['Difference', 'Difference'], ['Multiply', 'Multiply']]} onChange={(v) => engine.setText('blend', v)} />
+        </div>
+      </Section>
+
+      <Section title="Text background" defaultOpen>
+        <IconToggles label="Text background" value={t.background || 'None'} onChange={(v) => engine.setText('background', v)}
+          options={[['None', 'None', 'No background'], ['Block', 'Block', 'Block behind each line'], ['Pill', 'Pill', 'Pill behind each line']]} />
+        {t.background && t.background !== 'None' && (
+          <div className="mt-2.5 flex items-center justify-between">
+            <span className="text-[12px] text-muted-foreground">Colour</span>
+            <Swatches state={state} label="Background colour" value={t.blockColor || 'ink'} onChange={(k) => engine.setText('blockColor', k)} />
+          </div>
+        )}
+      </Section>
+
       <Section title="Layout" defaultOpen aside={
-        <label className="flex items-center gap-1.5 text-[11px] normal-case tracking-normal text-muted-foreground" onClick={(e) => e.stopPropagation()}>
-          Grid <Switch checked={t.grid} onCheckedChange={(v) => engine.setText('grid', v)} className="scale-75" />
+        <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground" onClick={(e) => e.stopPropagation()}>
+          Grid <Switch checked={t.grid} onCheckedChange={(v) => engine.setText('grid', v)} className="scale-75" aria-label="Show grid" />
         </label>
       }>
         <LayoutPicker state={state} onPick={(l) => engine.setText('layout', l)} />
       </Section>
-      <Section title="Typefaces" defaultOpen>
-        <FontPicker label="Title" value={t.font} onChange={(v) => engine.setText('font', v)} />
-        <WeightPicker font={t.font} value={t.weight} onChange={(v) => engine.setText('weight', v)} />
-        <FontPicker label="Text" value={t.bodyFont} onChange={(v) => engine.setText('bodyFont', v)} />
-        <WeightPicker font={t.bodyFont} value={t.bodyWeight} onChange={(v) => engine.setText('bodyWeight', v)} />
-        <SliderField label="Size" value={t.size} min={0.4} max={2.5} step={0.01} onChange={(v) => engine.setText('size', v)} />
-        <div className="flex items-center justify-between py-1.5">
-          <span className="text-[12px] text-muted-foreground">Colour</span>
-          <div className="flex gap-1.5">
-            {COLOR_KEYS.map(([k, label]) => (
-              <button key={k} title={label} onClick={() => engine.setText('color', k)}
-                className={cn('size-5 rounded-full ring-1 ring-foreground/10', t.color === k && 'ring-2 ring-foreground ring-offset-2')}
-                style={{ background: state.colors[k] }} />
-            ))}
-          </div>
-        </div>
-      </Section>
-      <Section title="Typesetting">
-        <SliderField label="Title tracking" value={t.tracking} min={-100} max={300} step={5} onChange={(v) => engine.setText('tracking', v)} />
-        <SliderField label="Text tracking" value={t.bodyTracking} min={-50} max={300} step={5} onChange={(v) => engine.setText('bodyTracking', v)} />
-        <SliderField label="Leading" value={t.leading} min={0.7} max={1.8} step={0.01} onChange={(v) => engine.setText('leading', v)} />
-        <Segmented label="Case" value={t.textCase} options={[['As typed', 'Aa'], ['UPPERCASE', 'AA'], ['lowercase', 'aa']]} onChange={(v) => engine.setText('textCase', v)} />
-        <Segmented label="Title" value={t.titleStyle} options={[['Fill', 'Fill'], ['Outline', 'Outline']]} onChange={(v) => engine.setText('titleStyle', v)} />
-        <Segmented label="Blend" value={t.blend} options={[['Normal', 'Normal'], ['Difference', 'Diff'], ['Multiply', 'Mult']]} onChange={(v) => engine.setText('blend', v)} />
-      </Section>
-      <Section title="Text background" defaultOpen={t.background && t.background !== 'None'}>
-        <Segmented label="Shape" value={t.background || 'None'} options={[['None', 'None'], ['Block', 'Block'], ['Pill', 'Pill']]} onChange={(v) => engine.setText('background', v)} />
-        {t.background && t.background !== 'None' && (
-          <div className="flex items-center justify-between py-1.5">
-            <span className="text-[12px] text-muted-foreground">Colour</span>
-            <div className="flex gap-1.5">
-              {COLOR_KEYS.map(([k, label]) => (
-                <button key={k} title={label} onClick={() => engine.setText('blockColor', k)}
-                  className={cn('size-5 rounded-full ring-1 ring-foreground/10', (t.blockColor || 'ink') === k && 'ring-2 ring-foreground ring-offset-2')}
-                  style={{ background: state.colors[k] }} />
-              ))}
-            </div>
-          </div>
-        )}
-      </Section>
+
+      {effectKeys.length > 0 && (
+        <Section title="Effect text" defaultOpen aside={<SectionTools engine={engine} keys={effectKeys} />}>
+          <ParamList engine={engine} keys={effectKeys} />
+        </Section>
+      )}
     </>
   );
 }
@@ -179,12 +299,19 @@ function Segmented({ label, value, options, onChange }) {
 }
 
 // Only offers the weights the chosen font really has.
-function WeightPicker({ font, value, onChange }) {
+function WeightPicker({ font, value, onChange, compact }) {
   const weights = fontByName(font)?.weights || [400, 700];
-  if (weights.length < 2) return null;
+  if (weights.length < 2) return compact ? <div className="flex h-8 items-center rounded-md bg-muted/40 px-2 text-[12px] text-muted-foreground">Regular</div> : null;
   const names = { 100: 'Thin', 200: 'ExtraLight', 300: 'Light', 400: 'Regular', 500: 'Medium', 600: 'SemiBold', 700: 'Bold', 800: 'ExtraBold', 900: 'Black' };
   const nearest = weights.reduce((a, b) => (Math.abs(b - value) < Math.abs(a - value) ? b : a));
-  return <SelectField label="Weight" value={nearest} options={weights.map((w) => ({ value: w, label: names[w] || w }))} onChange={onChange} />;
+  const options = weights.map((w) => ({ value: w, label: names[w] || w }));
+  if (!compact) return <SelectField label="Weight" value={nearest} options={options} onChange={onChange} />;
+  return (
+    <Select value={String(nearest)} onValueChange={(v) => onChange(Number(v))}>
+      <SelectTrigger size="sm" aria-label="Weight" className="h-8 w-full min-w-0 border-none bg-muted/70 text-[12px] shadow-none"><SelectValue /></SelectTrigger>
+      <SelectContent>{options.map((o) => <SelectItem key={o.value} value={String(o.value)} className="text-[12px]">{o.label}</SelectItem>)}</SelectContent>
+    </Select>
+  );
 }
 
 function FinishTab({ engine }) {
@@ -249,7 +376,10 @@ export default function Inspector() {
   return (
     <aside className="flex h-[45vh] w-full shrink-0 flex-col border-t border-border bg-background md:h-auto md:w-[300px] md:border-l md:border-t-0">
       <div className="px-4 pb-3 pt-4">
-        <h2 className="text-[17px] leading-tight font-semibold tracking-tight">{mode.name}</h2>
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-[17px] leading-tight font-semibold tracking-tight">{mode.name}</h2>
+          <CodeButton engine={engine} />
+        </div>
         {mode.hint && <p className="mt-0.5 text-[12px] text-muted-foreground">{mode.hint}</p>}
         {meta && (
           <details className="group mt-2 text-[12px]">
@@ -269,21 +399,21 @@ export default function Inspector() {
           </details>
         )}
       </div>
-      <Tabs defaultValue="shape" className="flex min-h-0 flex-1 flex-col gap-0">
+      {/* Always the same order: words first, then form, colour, and the final look. */}
+      <Tabs defaultValue="type" className="flex min-h-0 flex-1 flex-col gap-0">
         <div className="px-4 pb-1">
-          <TabsList className="grid h-8 w-full grid-cols-5">
-            {['shape', 'colour', 'type', 'finish', 'code'].map((t) => (
+          <TabsList className="grid h-8 w-full grid-cols-4">
+            {['type', 'shape', 'colour', 'finish'].map((t) => (
               <TabsTrigger key={t} value={t} className="px-1 text-[12px] capitalize">{t}</TabsTrigger>
             ))}
           </TabsList>
         </div>
         {/* block (not Radix's default table) so wide code scrolls inside its box */}
         <ScrollArea className="min-h-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:block!">
+          <TabsContent value="type" className="mt-0"><TypeTab engine={engine} /></TabsContent>
           <TabsContent value="shape" className="mt-0"><ShapeTab engine={engine} /></TabsContent>
           <TabsContent value="colour" className="mt-0"><ColourTab engine={engine} /></TabsContent>
-          <TabsContent value="type" className="mt-0"><TypeTab engine={engine} /></TabsContent>
           <TabsContent value="finish" className="mt-0"><FinishTab engine={engine} /></TabsContent>
-          <TabsContent value="code" className="mt-0"><CodeTab engine={engine} /></TabsContent>
         </ScrollArea>
       </Tabs>
     </aside>

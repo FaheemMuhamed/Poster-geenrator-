@@ -12,13 +12,13 @@ const params = {
   width:   { value: 0.72, min: 0.2, max: 1, step: 0.01, label: 'Bar width' },
   base:    { value: 2.2, min: 0.2, max: 6, step: 0.01, label: 'Bar height' },
   height:  { value: 1.4, min: 0, max: 5, step: 0.01, label: 'Wave height' },
-  speed:   { value: 0.6, min: 0, max: 2.5, step: 0.01, label: 'Wave speed' },
-  twist:   { value: 0.12, min: 0, max: 1.5, step: 0.01, label: 'Twist' },
-  warp:    { value: 0.25, min: 0, max: 1.5, step: 0.01, label: 'Warp' },
+  speed:   { value: 0.6, min: 0, max: 2.5, step: 0.01, label: 'Speed' },
+  twist:   { value: 0.12, min: 0, max: 1.5, step: 0.01, label: 'Twist amount' },
+  warp:    { value: 0.25, min: 0, max: 1.5, step: 0.01, label: 'Warp amount' },
   accent:  { value: 0.12, min: 0, max: 0.6, step: 0.01, label: 'Accent amount' },
-  angle:   { value: 6, min: 0, max: 60, step: 1, label: 'Camera angle' },
-  lens:    { value: 100, min: 25, max: 110, step: 1, label: 'Lens width' },
-  push:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Cursor push' },
+  angle:   { value: 6, min: 0, max: 60, step: 1, label: 'Camera angle', unit: '°' },
+  lens:    { value: 100, min: 25, max: 110, step: 1, label: 'Lens width', unit: '°' },
+  push:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Push strength' },
 };
 
 const vertex = /* glsl */ `
@@ -139,8 +139,17 @@ export default {
   params,
   controls: {
     essentials: ['base', 'height', 'lens', 'twist'],
-    groups: { Field: ['grid', 'width', 'warp', 'accent'], Motion: ['speed', 'push'], Camera: ['angle'] },
+    form: ['grid', 'width', 'warp', 'angle'],
+    motion: ['speed'],
+    interaction: ['push'],
+    colour: ['accent'],
   },
+  presets: {
+    'Calm': { height: 0.5, speed: 0.3, twist: 0, warp: 0.1 },
+    'Storm': { height: 3.5, speed: 1.6, twist: 0.5, warp: 1 },
+    'Towers': { base: 5, height: 1, width: 0.5, lens: 60, angle: 30 },
+  },
+  interactions: { hover: 'drags a crater through the bars, leaving a wake', click: 'sends a big wave rolling outward' },
   create(ctx) {
     const P = ctx.params;
     const stage = createThreeStage(ctx, { fov: 72, cameraZ: 20 });

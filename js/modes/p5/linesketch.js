@@ -31,20 +31,31 @@ export default {
   medium: 'image',
   hint: 'Hover to sketch with the pen · click to start a fresh drawing',
   params: {
-    strokes:     { value: 70, min: 10, max: 300, step: 5, label: 'Strokes per frame' },
+    strokes:     { value: 70, min: 10, max: 300, step: 5, label: 'Speed' },
     length:      { value: 1, min: 0.2, max: 3, step: 0.05, label: 'Stroke length' },
-    weight:      { value: 0.8, min: 0.2, max: 3, step: 0.05, label: 'Line weight' },
+    weight:      { value: 0.8, min: 0.2, max: 3, step: 0.05, label: 'Line thickness' },
     follow:      { value: 0.75, min: 0, max: 1, step: 0.01, label: 'Edge follow' },
     jitter:      { value: 0.5, min: 0, max: 1, step: 0.01, label: 'Looseness' },
-    colour:      { value: 'Photo', options: ['Photo', 'Ink', 'Palette'], label: 'Colour' },
-    perspective: { value: 0.45, min: 0, max: 1, step: 0.01, label: 'Perspective lines' },
-    paper:       { value: 0.3, min: 0, max: 1, step: 0.01, label: 'Paper show-through' },
+    colour:      { value: 'Photo', options: ['Photo', 'Ink', 'Palette'], label: 'Line colour' },
+    perspective: { value: 0.45, min: 0, max: 1, step: 0.01, label: 'Guide lines' },
+    paper:       { value: 0.3, min: 0, max: 1, step: 0.01, label: 'Fade speed' },
     wash:        { value: 0.25, min: 0, max: 1, step: 0.01, label: 'Colour wash' },
   },
   controls: {
-    essentials: ['strokes', 'length', 'colour', 'perspective'],
-    groups: { Line: ['weight', 'follow', 'jitter'], Paper: ['paper', 'wash'] },
+    essentials: ['strokes', 'length', 'jitter', 'perspective'],
+    form: ['weight', 'follow'],
+    motion: ['paper'],
+    interaction: [],
+    image: [],
+    colour: ['colour', 'wash'],
+    type: [],
   },
+  presets: {
+    'Quick sketch': { strokes: 40, length: 1.6, jitter: 0.8, weight: 0.6, perspective: 0.2 },
+    'Fine study': { strokes: 160, length: 0.6, jitter: 0.2, weight: 0.4, follow: 0.95, perspective: 0.6 },
+    'Bold ink': { strokes: 90, length: 1.2, weight: 2, colour: 'Ink', wash: 0, paper: 0.15 },
+  },
+  interactions: { hover: 'sketches dense strokes around the pen', click: 'starts a fresh drawing from that point' },
 
   create(ctx) {
     const P = ctx.params;

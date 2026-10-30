@@ -20,11 +20,11 @@ const params = {
   font:     { value: 'Helvetiker', options: Object.keys(FONTS), label: 'Font' },
   material: { value: 'Ink + accent sides', options: MATERIALS, label: 'Material' },
   depth:    { value: 0.35, min: 0.02, max: 1.5, step: 0.01, label: 'Depth' },
-  bevel:    { value: 0.03, min: 0, max: 0.1, step: 0.001, label: 'Bevel' },
+  bevel:    { value: 0.03, min: 0, max: 0.1, step: 0.001, label: 'Bevel size' },
   spacing:  { value: 0.02, min: -0.2, max: 0.6, step: 0.01, label: 'Letter spacing' },
-  scale:    { value: 1, min: 0.3, max: 1.6, step: 0.01, label: 'Text scale' },
+  scale:    { value: 1, min: 0.3, max: 1.6, step: 0.01, label: 'Text size', unit: '×' },
   float:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Float amount' },
-  scatter:  { value: 1.5, min: 0, max: 4, step: 0.01, label: 'Scatter' },
+  scatter:  { value: 1.5, min: 0, max: 4, step: 0.01, label: 'Scatter strength' },
   shift:    { value: 0, min: 0, max: 1, step: 0.01, label: 'Colour shift' },
   backdrop: { value: true, label: 'Backdrop blobs' },
 };
@@ -108,6 +108,20 @@ export default {
   ownsText: true,
   hint: 'Drag to orbit, click to scatter the letters',
   params,
+  controls: {
+    essentials: ['material', 'depth', 'float', 'scatter'],
+    form: ['bevel', 'backdrop'],
+    motion: [],
+    interaction: [],
+    colour: ['shift'],
+    type: ['font', 'spacing', 'scale'],
+  },
+  presets: {
+    'Chunky': { material: 'Ink + accent sides', depth: 1.1, bevel: 0.06, float: 0.6 },
+    'Wireframe': { material: 'Wireframe', depth: 0.6, float: 0.5, backdrop: false },
+    'Dreamy': { material: 'Iridescent', depth: 0.25, float: 2.2, scatter: 2.5 },
+  },
+  interactions: { hover: 'tilts the scene and lifts nearby letters', click: 'scatters the letters apart' },
   create(ctx) {
     const P = ctx.params;
     const r = ctx.rand;

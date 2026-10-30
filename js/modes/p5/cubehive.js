@@ -87,20 +87,29 @@ export default {
   engine: 'p5',
   hint: 'Hover to twist a cube (move to steer it) · click to send a wave of twists',
   params: {
-    size:     { value: 84, min: 44, max: 170, step: 1, label: 'Cube size', rebuild: true },
+    size:     { value: 84, min: 44, max: 170, step: 1, label: 'Cube size', unit: 'px', rebuild: true },
     facets:   { value: 3, min: 2, max: 4, step: 1, label: 'Facets per side', rebuild: true },
     scramble: { value: 12, min: 1, max: 30, step: 1, label: 'Scramble depth', rebuild: true },
-    gap:      { value: 0.11, min: 0, max: 0.3, step: 0.005, label: 'Facet gap' },
-    colors:   { value: 4, min: 1, max: 6, step: 1, label: 'Colours per cube', rebuild: true },
+    gap:      { value: 0.11, min: 0, max: 0.3, step: 0.005, label: 'Facet spacing' },
+    colors:   { value: 4, min: 1, max: 6, step: 1, label: 'Colour count', rebuild: true },
     solved:   { value: 0.1, min: 0, max: 1, step: 0.01, label: 'Solved chance', rebuild: true },
     shading:  { value: 1, min: 0, max: 1.6, step: 0.01, label: 'Face shading' },
-    speed:    { value: 1, min: 0.25, max: 3, step: 0.05, label: 'Twist speed' },
+    speed:    { value: 1, min: 0.25, max: 3, step: 0.05, label: 'Speed' },
     idle:     { value: 1, min: 0, max: 3, step: 0.05, label: 'Idle twists' },
   },
   controls: {
     essentials: ['size', 'facets', 'scramble', 'gap'],
-    groups: { Look: ['colors', 'solved', 'shading'], Motion: ['speed', 'idle'] },
+    form: ['solved', 'shading'],
+    motion: ['speed', 'idle'],
+    interaction: [],
+    colour: ['colors'],
   },
+  presets: {
+    'Calm': { speed: 0.5, idle: 0.3, gap: 0.05 },
+    'Busy': { speed: 2, idle: 2.5, gap: 0.15 },
+    'Chunky': { facets: 2, size: 120, gap: 0.2, shading: 1.4 },
+  },
+  interactions: { hover: 'twists the cube under the cursor the way you move, neighbours echo it', click: 'sends a ring of twists rolling outward' },
 
   create(ctx) {
     const P = ctx.params;

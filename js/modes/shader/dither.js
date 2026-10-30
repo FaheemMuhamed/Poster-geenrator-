@@ -6,18 +6,18 @@ import { createFullscreenShader } from '../../shared/fullscreenShader.js';
 import { THREE } from '../../shared/threeStage.js';
 
 const params = {
-  cell:       { value: 2.5, min: 1, max: 10, step: 0.5, label: 'Dot size' },
+  cell:       { value: 2.5, min: 1, max: 10, step: 0.5, label: 'Dot size', unit: 'px' },
   pattern:    { value: 'Bayer 8×8', options: ['Bayer 4×4', 'Bayer 8×8', 'Clustered dot', 'Line screen', 'Noise'], label: 'Pattern' },
-  colours:    { value: 'Ink on background', options: ['Ink on background', 'Accent on background', 'Ink on accent'], label: 'Colours' },
-  contrast:   { value: 1.25, min: 0.2, max: 3, step: 0.01, label: 'Contrast' },
+  colours:    { value: 'Ink on background', options: ['Ink on background', 'Accent on background', 'Ink on accent'], label: 'Colour pair' },
+  contrast:   { value: 1.25, min: 0.2, max: 3, step: 0.01, label: 'Contrast', unit: '×' },
   brightness: { value: 0.02, min: -0.5, max: 0.5, step: 0.01, label: 'Brightness' },
   gamma:      { value: 1, min: 0.3, max: 3, step: 0.01, label: 'Gamma' },
-  angle:      { value: 45, min: 0, max: 90, step: 1, label: 'Screen angle' },
+  angle:      { value: 45, min: 0, max: 90, step: 1, label: 'Screen angle', unit: '°' },
   invert:     { value: false, label: 'Invert' },
-  breathe:    { value: 0.6, min: 0, max: 2, step: 0.01, label: 'Breathing' },
-  lens:       { value: 'Finer + swap', options: ['Finer', 'Swap colours', 'Finer + swap'], label: 'Lens' },
+  breathe:    { value: 0.6, min: 0, max: 2, step: 0.01, label: 'Breathing amount' },
+  lens:       { value: 'Finer + swap', options: ['Finer', 'Swap colours', 'Finer + swap'], label: 'Lens mode' },
   lensSize:   { value: 0.17, min: 0.05, max: 0.45, step: 0.01, label: 'Lens size' },
-  ripple:     { value: 1, min: 0, max: 2, step: 0.01, label: 'Click ripple' },
+  ripple:     { value: 1, min: 0, max: 2, step: 0.01, label: 'Ripple strength' },
 };
 
 const RIPPLES = 4;
@@ -174,13 +174,19 @@ export default {
   hint: 'Hover for a fine-screen loupe, click to send a ripple of inverted dots',
   params,
   controls: {
-    essentials: ['cell', 'pattern', 'colours', 'contrast'],
-    groups: {
-      Tone: ['brightness', 'gamma', 'invert'],
-      Screen: ['angle', 'breathe'],
-      Interaction: ['lens', 'lensSize', 'ripple'],
-    },
+    essentials: ['cell', 'pattern', 'angle', 'breathe'],
+    form: [],
+    motion: [],
+    interaction: ['lens', 'lensSize', 'ripple'],
+    image: ['contrast', 'brightness', 'gamma', 'invert'],
+    colour: ['colours'],
   },
+  presets: {
+    'Fine print': { cell: 1, pattern: 'Bayer 8×8', contrast: 1.4 },
+    'Newsprint': { cell: 4, pattern: 'Clustered dot', angle: 45, contrast: 1.6 },
+    'Engraving': { cell: 3, pattern: 'Line screen', angle: 30, contrast: 1.8, gamma: 0.8 },
+  },
+  interactions: { hover: 'opens a loupe with a finer screen and swapped colours', click: 'sends rings of inverted dots outward' },
   create(ctx) {
     const rips = Array.from({ length: RIPPLES }, () => new THREE.Vector4(0, 0, -99, 0));
     const uDpr = { value: 1 };

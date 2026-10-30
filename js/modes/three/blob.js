@@ -9,12 +9,12 @@ const PULSES = 4; // how many click ripples can overlap
 const params = {
   material:  { value: 'Soft glow', options: MATERIALS, label: 'Material' },
   amount:    { value: 0.28, min: 0, max: 1, step: 0.01, label: 'Noise amount' },
-  scale:     { value: 0.75, min: 0.2, max: 4, step: 0.01, label: 'Noise scale' },
+  scale:     { value: 0.75, min: 0.2, max: 4, step: 0.01, label: 'Noise scale', unit: '×' },
   speed:     { value: 0.35, min: 0, max: 2, step: 0.01, label: 'Speed' },
-  size:      { value: 1.0, min: 0.3, max: 2.2, step: 0.01, label: 'Size' },
+  size:      { value: 1.0, min: 0.3, max: 2.2, step: 0.01, label: 'Size', unit: '×' },
   shift:     { value: 0, min: 0, max: 1, step: 0.01, label: 'Colour shift' },
   edge:      { value: 1, min: 0, max: 3, step: 0.01, label: 'Edge glow' },
-  satellites:{ value: 2, min: 0, max: 6, step: 1, label: 'Satellites', rebuild: true },
+  satellites:{ value: 2, min: 0, max: 6, step: 1, label: 'Satellite count', rebuild: true },
   posX:      { value: 0, min: -1.5, max: 1.5, step: 0.01, label: 'Position X' },
   posY:      { value: -0.1, min: -2, max: 2, step: 0.01, label: 'Position Y' },
 };
@@ -134,6 +134,19 @@ export default {
   engine: 'three',
   hint: 'Move to pull the blob, click to ripple it',
   params,
+  controls: {
+    essentials: ['material', 'amount', 'scale', 'size'],
+    form: ['edge', 'satellites', 'posX', 'posY'],
+    motion: ['speed'],
+    interaction: [],
+    colour: ['shift'],
+  },
+  presets: {
+    'Lava lamp': { material: 'Soft glow', amount: 0.45, scale: 0.6, speed: 0.3 },
+    'Pearl': { material: 'Iridescent', amount: 0.15, scale: 1.2, edge: 1.6 },
+    'Glass drop': { material: 'Glass', amount: 0.35, scale: 1.5, speed: 0.6, size: 1.2 },
+  },
+  interactions: { hover: 'pulls a bulge toward the cursor', click: 'sends a ripple across the surface' },
   create(ctx) {
     const P = ctx.params;
     const r = ctx.rand;
