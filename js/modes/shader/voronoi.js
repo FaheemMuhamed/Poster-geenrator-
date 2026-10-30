@@ -5,16 +5,16 @@ import { createFullscreenShader } from '../../shared/fullscreenShader.js';
 import { THREE } from '../../shared/threeStage.js';
 
 const params = {
-  cells:      { value: 5, min: 2, max: 16, step: 0.1, label: 'Cell scale' },
-  edge:       { value: 0.25, min: 0, max: 1, step: 0.01, label: 'Edge width' },
+  cells:      { value: 5, min: 2, max: 16, step: 0.1, label: 'Cell density' },
+  edge:       { value: 0.25, min: 0, max: 1, step: 0.01, label: 'Edge thickness' },
   refraction: { value: 0.7, min: 0, max: 2, step: 0.01, label: 'Refraction' },
   dispersion: { value: 0.7, min: 0, max: 2, step: 0.01, label: 'Dispersion' },
   rim:        { value: 0.6, min: 0, max: 2, step: 0.01, label: 'Rim glow' },
-  drift:      { value: 1, min: 0, max: 4, step: 0.01, label: 'Drift speed' },
-  gradScale:  { value: 1.2, min: 0.2, max: 4, step: 0.01, label: 'Gradient scale' },
+  drift:      { value: 1, min: 0, max: 4, step: 0.01, label: 'Speed', unit: '×' },
+  gradScale:  { value: 1.2, min: 0.2, max: 4, step: 0.01, label: 'Gradient scale', unit: '×' },
   edgeColor:  { value: 'Ink', options: ['Ink', 'Light', 'Accent'], label: 'Edge colour' },
-  push:       { value: 1, min: 0, max: 2, step: 0.01, label: 'Mouse push' },
-  lens:       { value: 1, min: 0, max: 1, step: 0.01, label: 'Lens' },
+  push:       { value: 1, min: 0, max: 2, step: 0.01, label: 'Push strength' },
+  lens:       { value: 1, min: 0, max: 1, step: 0.01, label: 'Lens amount' },
 };
 
 const fragment = /* glsl */ `
@@ -130,6 +130,19 @@ export default {
   engine: 'three',
   hint: 'Move to push the glass + lens, click to shatter',
   params,
+  controls: {
+    essentials: ['cells', 'refraction', 'dispersion', 'rim'],
+    form: ['edge', 'gradScale'],
+    motion: ['drift'],
+    interaction: ['push', 'lens'],
+    colour: ['edgeColor'],
+  },
+  presets: {
+    'Cathedral': { cells: 3, edge: 0.6, refraction: 1, rim: 0.8, edgeColor: 'Ink' },
+    'Crushed ice': { cells: 12, edge: 0.1, refraction: 1.6, dispersion: 1.4, edgeColor: 'Light' },
+    'Rainbow': { dispersion: 2, refraction: 0.5, rim: 1.4, edgeColor: 'Accent' },
+  },
+  interactions: { hover: 'pushes the panes aside under a magnifying lens', click: 'shatters the glass into small shards' },
   create(ctx) {
     const shatter = new THREE.Vector3(0.5, 0.5, 0);
     const fs = createFullscreenShader(ctx, params, fragment, { extraUniforms: { uShatter: { value: shatter } } });

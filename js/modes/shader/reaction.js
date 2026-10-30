@@ -20,17 +20,17 @@ const params = {
   preset:    { value: 'Coral', options: [...Object.keys(PRESETS), 'Custom'], label: 'Pattern' },
   feed:      { value: 0.0545, min: 0.01, max: 0.1, step: 0.0005, label: 'Feed (Custom)' },
   kill:      { value: 0.062, min: 0.045, max: 0.07, step: 0.0005, label: 'Kill (Custom)' },
-  steps:     { value: 12, min: 4, max: 20, step: 1, label: 'Steps / frame' },
-  quality:   { value: '512', options: ['256', '512', '768'], rebuild: true, noShuffle: true, label: 'Resolution' },
-  blobs:     { value: 14, min: 0, max: 60, step: 1, rebuild: true, label: 'Seed blobs' },
+  steps:     { value: 12, min: 4, max: 20, step: 1, label: 'Speed' },
+  quality:   { value: '512', options: ['256', '512', '768'], rebuild: true, noShuffle: true, label: 'Detail' },
+  blobs:     { value: 14, min: 0, max: 60, step: 1, rebuild: true, label: 'Seed count' },
   seedTitle: { value: true, rebuild: true, label: 'Seed from title' },
   imprint:   { value: 0.5, min: 0, max: 1, step: 0.01, label: 'Title imprint' },
-  drift:     { value: 0.3, min: 0, max: 1, step: 0.01, label: 'Drift' },
-  paint:     { value: 'Hover', options: ['Hover', 'Hold'], label: 'Paint' },
+  drift:     { value: 0.3, min: 0, max: 1, step: 0.01, label: 'Drift amount' },
+  paint:     { value: 'Hover', options: ['Hover', 'Hold'], label: 'Paint mode' },
   brush:     { value: 0.035, min: 0.01, max: 0.15, step: 0.001, label: 'Brush size' },
   spread:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Colour spread' },
-  emboss:    { value: 0.7, min: 0, max: 2, step: 0.01, label: 'Emboss' },
-  edge:      { value: 0.35, min: 0, max: 1, step: 0.01, label: 'Ink edge' },
+  emboss:    { value: 0.7, min: 0, max: 2, step: 0.01, label: 'Emboss amount' },
+  edge:      { value: 0.35, min: 0, max: 1, step: 0.01, label: 'Outline amount' },
 };
 
 // One simulation step. R = A, G = B. The seed texture's G channel holds the title mask.
@@ -132,6 +132,20 @@ export default {
   engine: 'three',
   hint: 'Move to paint, click to drop a seed',
   params,
+  controls: {
+    essentials: ['preset', 'steps', 'brush', 'emboss'],
+    form: ['feed', 'kill', 'quality', 'blobs', 'edge'],
+    motion: ['drift'],
+    interaction: ['paint'],
+    colour: ['spread'],
+    type: ['seedTitle', 'imprint'],
+  },
+  presets: {
+    'Embossed coral': { preset: 'Coral', emboss: 1.3, spread: 1.4, edge: 0.5 },
+    'Fine print': { preset: 'Fingerprint', emboss: 0.4, edge: 0.8, spread: 0.6 },
+    'Flat maze': { preset: 'Maze', emboss: 0, edge: 0.2, spread: 2 },
+  },
+  interactions: { hover: 'paints new growth under the cursor', click: 'drops a large seed' },
   create(ctx) {
     const stage = createThreeStage(ctx, { ortho: true, background: false });
     const renderer = stage.renderer;

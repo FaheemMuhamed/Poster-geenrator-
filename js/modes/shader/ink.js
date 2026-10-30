@@ -8,15 +8,15 @@ const MAX_DROPS = 8;   // click drops remembered in a uniform array (oldest repl
 const TRAIL = 6;       // lagging "wet" points left behind by the cursor
 
 const params = {
-  lanes:      { value: 5, min: 1, max: 12, step: 1, label: 'Lanes' },
+  lanes:      { value: 5, min: 1, max: 12, step: 1, label: 'Lane count' },
   spots:      { value: 22, min: 4, max: 48, step: 1, label: 'Spots per lane' },
   spotWidth:  { value: 0.62, min: 0.2, max: 0.95, step: 0.01, label: 'Spot width' },
   bleed:      { value: 0.7, min: 0, max: 2, step: 0.01, label: 'Bleed' },
   separation: { value: 0.9, min: 0, max: 2.5, step: 0.01, label: 'Separation' },
   outline:    { value: 0.6, min: 0, max: 1, step: 0.01, label: 'Outline' },
-  gaps:       { value: 0.15, min: 0, max: 0.8, step: 0.01, label: 'Gaps' },
+  gaps:       { value: 0.15, min: 0, max: 0.8, step: 0.01, label: 'Gap size' },
   speed:      { value: 1, min: 0, max: 4, step: 0.01, label: 'Speed' },
-  wetness:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Mouse wetness' },
+  wetness:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Wetting strength' },
   paper:      { value: 0.5, min: 0, max: 1, step: 0.01, label: 'Paper texture' },
 };
 
@@ -180,6 +180,18 @@ export default {
   engine: 'three',
   hint: 'Hover to wet the paper, click to drop ink',
   params,
+  controls: {
+    essentials: ['lanes', 'spots', 'bleed', 'separation'],
+    form: ['spotWidth', 'outline', 'gaps', 'paper'],
+    motion: ['speed'],
+    interaction: ['wetness'],
+  },
+  presets: {
+    'Fine strips': { lanes: 9, spots: 36, spotWidth: 0.45, bleed: 0.4 },
+    'Big bloom': { lanes: 3, spots: 10, bleed: 1.6, separation: 1.8 },
+    'Clean dots': { bleed: 0.2, separation: 0.3, outline: 0.9, gaps: 0.4 },
+  },
+  interactions: { hover: 'wets the paper so nearby spots swell and bleed', click: 'drops ink that spreads into rings' },
   create(ctx) {
     const drops = Array.from({ length: MAX_DROPS }, () => new THREE.Vector4(0, 0, -1, 0));
     const trail = Array.from({ length: TRAIL }, () => new THREE.Vector3(0, 0, 0));

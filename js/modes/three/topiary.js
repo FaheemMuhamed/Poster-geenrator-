@@ -9,13 +9,13 @@ const PEAKS = 4;    // background mountains (GPU only)
 const SPAWN = 36;   // instances reserved for clicked-in bushes
 
 const params = {
-  dot:    { value: 4, min: 1.5, max: 8, step: 0.1, label: 'Dot size' },
-  hills:  { value: 1, min: 0.2, max: 2, step: 0.01, label: 'Hill height' },
+  dot:    { value: 4, min: 1.5, max: 8, step: 0.1, label: 'Dot size', unit: 'px' },
+  hills:  { value: 1, min: 0.2, max: 2, step: 0.01, label: 'Hill height', unit: '×' },
   bushes: { value: 80, min: 0, max: 200, step: 1, label: 'Bush count', rebuild: true },
   trees:  { value: 9, min: 0, max: 40, step: 1, label: 'Tree count', rebuild: true },
-  light:  { value: -35, min: -90, max: 90, step: 1, label: 'Light angle' },
-  drift:  { value: 0.5, min: 0, max: 2, step: 0.01, label: 'Drift speed' },
-  bounce: { value: 1, min: 0, max: 3, step: 0.01, label: 'Bounce' },
+  light:  { value: -35, min: -90, max: 90, step: 1, label: 'Light angle', unit: '°' },
+  drift:  { value: 0.5, min: 0, max: 2, step: 0.01, label: 'Speed' },
+  bounce: { value: 1, min: 0, max: 3, step: 0.01, label: 'Bounce strength' },
   moon:   { value: true, label: 'Moon' },
 };
 
@@ -239,8 +239,16 @@ export default {
   params,
   controls: {
     essentials: ['dot', 'hills', 'bushes', 'light'],
-    groups: { Garden: ['trees', 'moon'], Motion: ['drift', 'bounce'] },
+    form: ['trees', 'moon'],
+    motion: ['drift'],
+    interaction: ['bounce'],
   },
+  presets: {
+    'Fine stipple': { dot: 2, hills: 0.8, light: -60 },
+    'Rolling hills': { dot: 4.5, hills: 1.8, drift: 1.2 },
+    'Midday': { dot: 3, light: 0, moon: false, bounce: 2 },
+  },
+  interactions: { hover: 'makes bushes and trees wobble like jelly', click: 'plants a new bush and nudges its neighbours' },
   create(ctx) {
     const P = ctx.params;
     const stage = createThreeStage(ctx, { fov: 32, cameraZ: 13 });

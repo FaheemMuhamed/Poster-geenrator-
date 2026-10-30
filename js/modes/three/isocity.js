@@ -11,14 +11,14 @@ const params = {
   grid:    { value: 40, min: 16, max: 72, step: 1, label: 'Grid size', rebuild: true },
   density: { value: 0.9, min: 0.2, max: 1, step: 0.01, label: 'Density' },
   height:  { value: 5.5, min: 1, max: 16, step: 0.1, label: 'Max height' },
-  towers:  { value: 0.07, min: 0, max: 0.4, step: 0.01, label: 'Tower chance' },
+  towers:  { value: 0.07, min: 0, max: 0.4, step: 0.01, label: 'Tower amount' },
   colour:  { value: 0.4, min: 0, max: 1, step: 0.01, label: 'Colour amount' },
-  spin:    { value: 0.05, min: -0.5, max: 0.5, step: 0.01, label: 'Rotation speed' },
-  tilt:    { value: 35, min: 15, max: 65, step: 1, label: 'Camera tilt' },
-  zoom:    { value: 1, min: 0.5, max: 2, step: 0.01, label: 'Zoom' },
-  traffic: { value: 1, min: 0, max: 3, step: 0.01, label: 'Traffic' },
-  outline: { value: 0.75, min: 0, max: 1, step: 0.01, label: 'Outlines' },
-  lift:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Hover lift' },
+  spin:    { value: 0.05, min: -0.5, max: 0.5, step: 0.01, label: 'Speed' },
+  tilt:    { value: 35, min: 15, max: 65, step: 1, label: 'Camera tilt', unit: '°' },
+  zoom:    { value: 1, min: 0.5, max: 2, step: 0.01, label: 'Zoom', unit: '×' },
+  traffic: { value: 1, min: 0, max: 3, step: 0.01, label: 'Traffic speed' },
+  outline: { value: 0.75, min: 0, max: 1, step: 0.01, label: 'Outline strength' },
+  lift:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Lift strength' },
 };
 
 // Shared GLSL: pick one of the four accents by index, and the wall tone from the palette.
@@ -245,9 +245,20 @@ export default {
   hint: 'Hover to raise the blocks, click for a construction burst',
   params,
   controls: {
-    essentials: ['height', 'colour', 'towers', 'density'],
-    groups: { City: ['grid', 'outline', 'traffic'], Camera: ['spin', 'tilt', 'zoom'], Interaction: ['lift'] },
+    essentials: ['height', 'towers', 'density', 'spin'],
+    form: ['grid', 'tilt', 'zoom', 'outline'],
+    motion: ['traffic'],
+    interaction: ['lift'],
+    image: [],
+    colour: ['colour'],
+    type: [],
   },
+  presets: {
+    'Skyline': { height: 12, towers: 0.3, density: 1, tilt: 25 },
+    'Low town': { height: 2.5, towers: 0, density: 0.6, tilt: 55, traffic: 0.5 },
+    'Busy grid': { traffic: 2.5, spin: 0.15, colour: 0.8, outline: 1 },
+  },
+  interactions: { hover: 'raises and lights the blocks under the cursor', click: 'sends a construction burst outward' },
   create(ctx) {
     const P = ctx.params;
     const stage = createThreeStage(ctx, { ortho: true });

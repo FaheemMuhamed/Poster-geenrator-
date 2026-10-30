@@ -13,12 +13,12 @@ const MAX_TEX = 4096;   // cap for the text texture's long side (huge PNG export
 const params = {
   warp:        { value: 0.6, min: 0, max: 2, step: 0.01, label: 'Warp amount' },
   warpScale:   { value: 2, min: 0.3, max: 8, step: 0.01, label: 'Warp scale' },
-  flow:        { value: 1, min: 0, max: 4, step: 0.01, label: 'Flow speed' },
-  split:       { value: 0.8, min: 0, max: 3, step: 0.01, label: 'Chromatic split' },
-  decay:       { value: 0.965, min: 0.8, max: 0.995, step: 0.001, label: 'Trail decay' },
+  flow:        { value: 1, min: 0, max: 4, step: 0.01, label: 'Speed', unit: '×' },
+  split:       { value: 0.8, min: 0, max: 3, step: 0.01, label: 'Split amount' },
+  decay:       { value: 0.965, min: 0.8, max: 0.995, step: 0.001, label: 'Trail length' },
   ripple:      { value: 1, min: 0, max: 3, step: 0.01, label: 'Ripple strength' },
   repeat:      { value: true, label: 'Repeat title' },
-  repeatCount: { value: 7, min: 2, max: 16, step: 1, label: 'Repeat rows' },
+  repeatCount: { value: 7, min: 2, max: 16, step: 1, label: 'Row count' },
   background:  { value: 'Gradient', options: ['Flat', 'Gradient'], label: 'Background' },
 };
 
@@ -125,6 +125,20 @@ export default {
   ownsText: true,
   hint: 'Drag through the letters, click for ripples',
   params,
+  controls: {
+    essentials: ['warp', 'split', 'flow', 'ripple'],
+    form: ['warpScale'],
+    motion: [],
+    interaction: ['decay'],
+    colour: ['background'],
+    type: ['repeat', 'repeatCount'],
+  },
+  presets: {
+    'Calm': { warp: 0.3, flow: 0.5, split: 0.4, ripple: 0.6 },
+    'Molten': { warp: 1.4, warpScale: 1.2, flow: 1.6, split: 1.6 },
+    'Glitch': { warp: 0.8, warpScale: 5, split: 2.6, ripple: 2 },
+  },
+  interactions: { hover: 'drags a liquid trail through the letters', click: 'sends ripples outward' },
   create(ctx) {
     const stage = createThreeStage(ctx, { ortho: true, background: false });
     const renderer = stage.renderer;

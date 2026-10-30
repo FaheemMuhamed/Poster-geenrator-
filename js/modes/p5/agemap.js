@@ -128,21 +128,31 @@ export default {
   ownsText: true,
   hint: 'Hover a lot to see its year and its neighbours in time · click to replay the city growing',
   params: {
-    blockSize: { value: 36, min: 22, max: 90, step: 1, label: 'Block size', rebuild: true },
+    blockSize: { value: 36, min: 22, max: 90, step: 1, label: 'Block size', unit: 'px', rebuild: true },
     density:   { value: 1.2, min: 0, max: 2, step: 0.05, label: 'Lot density', rebuild: true },
     circle:    { value: false, label: 'Circle crop' },
     light:     { value: false, label: 'Light map' },
     river:     { value: true, label: 'River', rebuild: true },
-    roads:     { value: 1, min: 0, max: 2.5, step: 0.05, label: 'Roads weight', rebuild: true },
+    roads:     { value: 1, min: 0, max: 2.5, step: 0.05, label: 'Road thickness', rebuild: true },
     spread:    { value: 0.5, min: 0, max: 1, step: 0.01, label: 'Age noise', rebuild: true },
     yearStart: { value: 1850, min: 1700, max: 1950, step: 5, label: 'First year' },
     yearEnd:   { value: 2020, min: 1950, max: 2030, step: 5, label: 'Last year' },
-    window:    { value: 12, min: 2, max: 60, step: 1, label: 'Hover window (years)' },
+    window:    { value: 12, min: 2, max: 60, step: 1, label: 'Year window' },
   },
   controls: {
-    essentials: ['blockSize', 'density', 'circle', 'light'],
-    groups: { City: ['river', 'roads', 'spread'], Years: ['yearStart', 'yearEnd', 'window'] },
+    essentials: ['blockSize', 'density', 'spread', 'circle'],
+    form: ['river', 'roads'],
+    motion: [],
+    interaction: ['window'],
+    colour: ['light'],
+    type: ['yearStart', 'yearEnd'],
   },
+  presets: {
+    'Old town': { blockSize: 26, density: 1.6, yearStart: 1700, yearEnd: 1950 },
+    'Suburbia': { blockSize: 70, density: 0.6, roads: 1.8, yearStart: 1950, yearEnd: 2030 },
+    'Island': { circle: true, river: false, light: true },
+  },
+  interactions: { hover: 'shows a lot\'s year and dims all but its era', click: 'replays the city growing' },
 
   create(ctx) {
     const P = ctx.params;

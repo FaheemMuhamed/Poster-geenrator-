@@ -7,16 +7,16 @@ import { shaderSketch } from '../../shared/codegen.js';
 import { THREE } from '../../shared/threeStage.js';
 
 const params = {
-  hotspots: { value: 9, min: 1, max: 16, step: 1, label: 'Hotspots' },
-  spread:   { value: 1, min: 0.3, max: 2.5, step: 0.01, label: 'Spread' },
-  contours: { value: 10, min: 0, max: 30, step: 1, label: 'Contour lines' },
+  hotspots: { value: 9, min: 1, max: 16, step: 1, label: 'Hotspot count' },
+  spread:   { value: 1, min: 0.3, max: 2.5, step: 0.01, label: 'Hotspot size', unit: '×' },
+  contours: { value: 10, min: 0, max: 30, step: 1, label: 'Contour count' },
   ramp:     { value: 'Palette', options: ['Palette', 'Thermal', 'Mono ink'], label: 'Colour ramp' },
-  grid:     { value: 4, min: 1, max: 10, step: 1, label: 'Panel grid' },
+  grid:     { value: 4, min: 1, max: 10, step: 1, label: 'Panel count' },
   shift:    { value: 0.3, min: 0, max: 1, step: 0.01, label: 'Panel shift' },
   markers:  { value: true, label: 'Crosshairs' },
   frame:    { value: 0.05, min: 0, max: 0.15, step: 0.005, label: 'Frame margin' },
   speed:    { value: 1, min: 0, max: 4, step: 0.01, label: 'Speed' },
-  heat:     { value: 1, min: 0, max: 2, step: 0.01, label: 'Mouse heat' },
+  heat:     { value: 1, min: 0, max: 2, step: 0.01, label: 'Heat strength' },
 };
 
 const fragment = /* glsl */ `
@@ -209,9 +209,18 @@ export default {
   hint: 'Hover to warm the map, hold for more heat, click to drop a flare',
   params,
   controls: {
-    essentials: ['hotspots', 'spread', 'ramp', 'shift'],
-    groups: { Map: ['contours', 'grid', 'markers', 'frame'], Motion: ['speed', 'heat'] },
+    essentials: ['hotspots', 'spread', 'contours', 'shift'],
+    form: ['grid', 'markers', 'frame'],
+    motion: ['speed'],
+    interaction: ['heat'],
+    colour: ['ramp'],
   },
+  presets: {
+    'Thermal cam': { ramp: 'Thermal', contours: 14, grid: 1, shift: 0, markers: true },
+    'Glitch tiles': { grid: 8, shift: 0.8, contours: 6 },
+    'Ink map': { ramp: 'Mono ink', contours: 24, hotspots: 5, markers: false },
+  },
+  interactions: { hover: 'warms the map around the cursor, hotter while held', click: 'drops a heat flare with a spreading ring' },
   create(ctx) {
     const pulse = new THREE.Vector4(-10, -10, 0, 0);
     const hold = new THREE.Vector2(0, 1);

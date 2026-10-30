@@ -10,9 +10,9 @@ const RIPPLES = 10; // ring buffer of recent ripple origins
 const params = {
   grid:    { value: 120, min: 40, max: 200, step: 1, label: 'Grid size', rebuild: true },
   shape:   { value: 'Sphere', options: SHAPES, label: 'Shape', rebuild: true },
-  spacing: { value: 0.08, min: 0.04, max: 0.16, step: 0.001, label: 'Spacing' },
-  height:  { value: 0.9, min: 0, max: 3, step: 0.01, label: 'Height' },
-  scale:   { value: 1, min: 0.2, max: 4, step: 0.01, label: 'Noise scale' },
+  spacing: { value: 0.08, min: 0.04, max: 0.16, step: 0.001, label: 'Dot spacing' },
+  height:  { value: 0.9, min: 0, max: 3, step: 0.01, label: 'Hill height' },
+  scale:   { value: 1, min: 0.2, max: 4, step: 0.01, label: 'Noise scale', unit: '×' },
   speed:   { value: 0.4, min: 0, max: 2, step: 0.01, label: 'Speed' },
   dot:     { value: 0.55, min: 0.1, max: 1.5, step: 0.01, label: 'Dot size' },
   tilt:    { value: 0.6, min: 0.15, max: 1.5, step: 0.01, label: 'Camera tilt' },
@@ -83,6 +83,19 @@ export default {
   engine: 'three',
   hint: 'Move to ripple the field, click to drop a stone',
   params,
+  controls: {
+    essentials: ['shape', 'height', 'scale', 'dot'],
+    form: ['grid', 'spacing', 'tilt'],
+    motion: ['speed'],
+    interaction: ['ripple'],
+    colour: ['colorBy', 'shift'],
+  },
+  presets: {
+    'Rolling hills': { height: 0.6, scale: 0.6, dot: 0.5, speed: 0.25 },
+    'Peaks': { height: 2.2, scale: 1.8, dot: 0.4, colorBy: 'Height' },
+    'Flat mono': { height: 0.3, dot: 0.9, tilt: 1.2, colorBy: 'Mono' },
+  },
+  interactions: { hover: 'sends small ripples through the dots', click: 'drops a big ripple like a stone' },
   create(ctx) {
     const P = ctx.params;
     const stage = createThreeStage(ctx, { fov: 32, cameraZ: 9 });

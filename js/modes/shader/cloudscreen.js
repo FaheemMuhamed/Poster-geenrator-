@@ -8,13 +8,13 @@ import { THREE } from '../../shared/threeStage.js';
 
 const params = {
   dot:     { value: 0.9, min: 0.4, max: 3, step: 0.01, label: 'Dot size' },
-  scale:   { value: 1.6, min: 0.4, max: 5, step: 0.01, label: 'Cloud scale' },
-  cover:   { value: 0.58, min: 0, max: 1, step: 0.01, label: 'Cover' },
-  wind:    { value: 1, min: 0, max: 5, step: 0.01, label: 'Wind' },
-  grid:    { value: 3, min: 0, max: 8, step: 1, label: 'Grid lines' },
-  windows: { value: 2, min: 0, max: 2, step: 1, label: 'Windows' },
+  scale:   { value: 1.6, min: 0.4, max: 5, step: 0.01, label: 'Cloud scale', unit: '×' },
+  cover:   { value: 0.58, min: 0, max: 1, step: 0.01, label: 'Cloud cover' },
+  wind:    { value: 1, min: 0, max: 5, step: 0.01, label: 'Speed' },
+  grid:    { value: 3, min: 0, max: 8, step: 1, label: 'Grid count' },
+  windows: { value: 2, min: 0, max: 2, step: 1, label: 'Window count' },
   pair:    { value: 'Accent', options: ['Accent', 'Ink', 'Paper'], label: 'Colour pair' },
-  stir:    { value: 1, min: 0, max: 2, step: 0.01, label: 'Mouse stir' },
+  stir:    { value: 1, min: 0, max: 2, step: 0.01, label: 'Stir strength' },
 };
 
 const fragment = /* glsl */ `
@@ -134,9 +134,18 @@ export default {
   hint: 'Hover to move the window, hold to stir the clouds, click to puff',
   params,
   controls: {
-    essentials: ['dot', 'scale', 'cover', 'pair'],
-    groups: { Screen: ['grid', 'windows'], Motion: ['wind', 'stir'] },
+    essentials: ['dot', 'scale', 'cover', 'wind'],
+    form: ['grid', 'windows'],
+    motion: [],
+    interaction: ['stir'],
+    colour: ['pair'],
   },
+  presets: {
+    'Fine print': { dot: 0.55, scale: 2.4, cover: 0.5, grid: 5 },
+    'Overcast': { dot: 1.3, scale: 1.1, cover: 0.85, wind: 0.5, windows: 1 },
+    'Storm': { dot: 1.6, scale: 2, cover: 0.7, wind: 3.5, stir: 2, pair: 'Ink' },
+  },
+  interactions: { hover: 'drags a window along and swirls the clouds', click: 'sends a ring of puffed dots outward' },
   create(ctx) {
     const pulse = new THREE.Vector4(-10, -10, 0, 0);
     const hold = new THREE.Vector2(0, 1);

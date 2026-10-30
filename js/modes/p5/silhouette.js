@@ -26,19 +26,30 @@ export default {
   params: {
     threshold:  { value: 0.6, min: 0.05, max: 0.95, step: 0.01, label: 'Threshold' },
     invert:     { value: false, label: 'Light subject' },
-    pixel:      { value: 9, min: 5, max: 20, step: 1, label: 'Pixel size' },
-    spacing:    { value: 26, min: 12, max: 64, step: 1, label: 'Contour spacing' },
-    dash:       { value: 48, min: 3, max: 90, step: 1, label: 'Dash length' },
-    flow:       { value: 1, min: 0, max: 4, step: 0.01, label: 'Flow speed' },
+    pixel:      { value: 9, min: 5, max: 20, step: 1, label: 'Pixel size', unit: 'px' },
+    spacing:    { value: 26, min: 12, max: 64, step: 1, label: 'Contour spacing', unit: 'px' },
+    dash:       { value: 48, min: 3, max: 90, step: 1, label: 'Dash length', unit: 'px' },
+    flow:       { value: 1, min: 0, max: 4, step: 0.01, label: 'Speed' },
     colorMode:  { value: 'Palette', options: ['Palette', 'Tone', 'Photo'], label: 'Figure colour' },
-    flicker:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Flicker' },
-    bend:       { value: 1, min: 0, max: 3, step: 0.01, label: 'Cursor bend' },
+    flicker:    { value: 1, min: 0, max: 3, step: 0.01, label: 'Flicker speed' },
+    bend:       { value: 1, min: 0, max: 3, step: 0.01, label: 'Bend strength' },
     darkGround: { value: true, label: 'Dark ground' },
   },
   controls: {
-    essentials: ['threshold', 'pixel', 'spacing', 'colorMode'],
-    groups: { Figure: ['invert', 'flicker'], Contours: ['dash', 'flow', 'bend'], Ground: ['darkGround'] },
+    essentials: ['pixel', 'spacing', 'dash', 'flow'],
+    form: [],
+    motion: ['flicker'],
+    interaction: ['bend'],
+    image: ['threshold', 'invert'],
+    colour: ['colorMode', 'darkGround'],
+    type: [],
   },
+  presets: {
+    'Fine lines': { pixel: 6, spacing: 14, dash: 20, flow: 1.5 },
+    'Bold blocks': { pixel: 16, spacing: 40, dash: 80, flow: 0.6, flicker: 0.5 },
+    'Still': { flow: 0, flicker: 0, dash: 90, colorMode: 'Tone' },
+  },
+  interactions: { hover: 'bends the contour lines around the cursor', click: 'sends a pulse outward that lights the contours' },
 
   create(ctx) {
     const P = ctx.params;

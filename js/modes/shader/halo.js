@@ -7,15 +7,15 @@ import { createFullscreenShader } from '../../shared/fullscreenShader.js';
 import { THREE } from '../../shared/threeStage.js';
 
 const params = {
-  blur:        { value: 0.09, min: 0.01, max: 0.25, step: 0.001, label: 'Blur' },
+  blur:        { value: 0.09, min: 0.01, max: 0.25, step: 0.001, label: 'Blur size' },
   gradientMix: { value: 0.85, min: 0, max: 1, step: 0.01, label: 'Gradient mix' },
-  glow:        { value: 0.8, min: 0, max: 2, step: 0.01, label: 'Glow' },
+  glow:        { value: 0.8, min: 0, max: 2, step: 0.01, label: 'Glow amount' },
   colourShift: { value: 0, min: 0, max: 1, step: 0.01, label: 'Colour shift' },
-  contrast:    { value: 1.15, min: 0.3, max: 2.5, step: 0.01, label: 'Contrast' },
-  haze:        { value: 0.3, min: 0, max: 1, step: 0.01, label: 'Haze' },
-  drift:       { value: 1, min: 0, max: 4, step: 0.01, label: 'Drift speed' },
-  focusSize:   { value: 0.22, min: 0.05, max: 0.5, step: 0.01, label: 'Focus size' },
-  grain:       { value: 0.4, min: 0, max: 1.5, step: 0.01, label: 'Grain' },
+  contrast:    { value: 1.15, min: 0.3, max: 2.5, step: 0.01, label: 'Contrast', unit: '×' },
+  haze:        { value: 0.3, min: 0, max: 1, step: 0.01, label: 'Haze amount' },
+  drift:       { value: 1, min: 0, max: 4, step: 0.01, label: 'Speed', unit: '×' },
+  focusSize:   { value: 0.22, min: 0.05, max: 0.5, step: 0.01, label: 'Lens size' },
+  grain:       { value: 0.4, min: 0, max: 1.5, step: 0.01, label: 'Grain amount' },
 };
 
 const TAPS = 36;
@@ -111,13 +111,19 @@ export default {
   hint: 'Hover to bring a spot into focus, click to pulse the glow',
   params,
   controls: {
-    essentials: ['blur', 'gradientMix', 'glow', 'colourShift'],
-    groups: {
-      Colour: ['contrast', 'haze', 'drift'],
-      Focus: ['focusSize'],
-      Texture: ['grain'],
-    },
+    essentials: ['blur', 'glow', 'haze', 'drift'],
+    form: ['grain'],
+    motion: [],
+    interaction: ['focusSize'],
+    image: ['contrast'],
+    colour: ['gradientMix', 'colourShift'],
   },
+  presets: {
+    'Dreamy': { blur: 0.18, glow: 1.4, haze: 0.6, gradientMix: 1 },
+    'Subtle': { blur: 0.04, gradientMix: 0.4, glow: 0.4, grain: 0.2 },
+    'Neon': { glow: 2, contrast: 1.8, haze: 0.1, colourShift: 0.5 },
+  },
+  interactions: { hover: 'brings a spot back into sharp natural colour', click: 'pulses the glow outward' },
   create(ctx) {
     const focus = new THREE.Vector3(0, 0, 0);
     const pulse = new THREE.Vector4(0, 0, -99, 0);

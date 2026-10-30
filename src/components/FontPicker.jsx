@@ -23,11 +23,11 @@ export default function FontPicker({ label, value, onChange }) {
   const current = fontByName(value);
 
   return (
-    <div className="flex items-center justify-between gap-3 py-1">
-      <span className="shrink-0 text-[12px] text-muted-foreground">{label}</span>
+    <div className={label ? 'flex items-center justify-between gap-3 py-1' : ''}>
+      {label && <span className="shrink-0 text-[12px] text-muted-foreground">{label}</span>}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="flex h-8 w-[170px] items-center justify-between rounded-md border border-border bg-background px-2.5 text-left text-[13px] hover:border-foreground/40">
+          <button className={cn('flex h-8 items-center justify-between rounded-md px-2.5 text-left text-[13px]', label ? 'w-[170px] border border-border bg-background hover:border-foreground/40' : 'w-full bg-muted/70 hover:bg-muted')}>
             <span className="truncate" style={{ fontFamily: `"${current?.family || value}"` }}>{current?.name || value}</span>
             <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground/70" />
           </button>
