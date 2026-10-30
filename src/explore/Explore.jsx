@@ -46,6 +46,14 @@ export default function Explore({ onOpen }) {
     return () => { cancelAnimationFrame(raf); uni.dispose(); uniRef.current = null; };
   }, [data]);
 
+  // Esc closes the open poster.
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (e) => { if (e.key === 'Escape') uniRef.current?.select(-1); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selected]);
+
   useEffect(() => {
     uniRef.current?.setFilter((e) => (group === 'All' || e.group === group) && (!tag || e.tags.includes(tag)));
   }, [group, tag, data]);

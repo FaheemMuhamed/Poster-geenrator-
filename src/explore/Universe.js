@@ -242,7 +242,7 @@ export function createUniverse(container, data, atlasUrl, { onHover, onSelect, r
       rig.dist = fly.fromD + (fly.toD - fly.fromD) * k;
       if (t >= 1) fly = null;
     } else if (selected < 0) {
-      rig.theta += vel.theta + (reducedMotion || pointer.down ? 0 : dt * 0.035);
+      rig.theta += vel.theta + (reducedMotion || pointer.down || hovered >= 0 ? 0 : dt * 0.035);
       rig.phi = THREE.MathUtils.clamp(rig.phi + vel.phi, -0.6, 0.9);
       vel.theta *= 0.92; vel.phi *= 0.92;
     }

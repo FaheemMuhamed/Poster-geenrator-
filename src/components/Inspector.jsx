@@ -35,7 +35,7 @@ const matchPreset = (fx) => Object.keys(FX_PRESETS).find((n) => Object.entries(p
 
 function ShapeTab({ engine }) {
   const { state, mode } = engine;
-  const values = state.params[mode.id];
+  const values = state.params[mode.id] || {};
   const sections = controlSections(mode);
   return (
     <>
