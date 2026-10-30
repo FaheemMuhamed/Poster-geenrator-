@@ -5,6 +5,8 @@
 // Shared uniforms: uTime, uRes (pixels), uAspect, uMouse (0..1, y up), uMouseVel,
 // uDown (1 while pressed), uSeed (0..1), uMousePow (the "Mouse power" slider),
 // uInside (0..1, eased: is the cursor over the poster), uPal[6] (bg, ink, c1..c4) + paletteRamp().
+// With { source: true }: uSource (the picture, see sources.js), uSourceAspect, and
+// sourceUv(vUv) which fits the picture to cover the poster (like CSS object-fit: cover).
 import { createThreeStage, paletteUniform, THREE } from './threeStage.js';
 import { NOISE, PALETTE_GLSL } from '../shaders/noise.glsl.js';
 
@@ -17,7 +19,18 @@ export function paramUniformDecls(params) {
   return Object.keys(params).map((k) => `uniform float p_${k};`).join('\n');
 }
 
-export function shaderHeader(params) {
+const SOURCE_GLSL = /* glsl */ `
+uniform sampler2D uSource;
+uniform float uSourceAspect;
+vec2 sourceUv(vec2 uv) {
+  vec2 s = vec2(1.0);
+  if (uAspect > uSourceAspect) s.y = uSourceAspect / uAspect; else s.x = uAspect / uSourceAspect;
+  return (uv - 0.5) * s + 0.5;
+}
+vec3 sourceAt(vec2 uv) { return texture2D(uSource, sourceUv(uv)).rgb; }
+`;
+
+export function shaderHeader(params, { source = false } = {}) {
   return `
     varying vec2 vUv;
     uniform float uTime, uAspect, uDown, uSeed, uMousePow, uInside;
@@ -25,7 +38,29 @@ export function shaderHeader(params) {
     ${paramUniformDecls(params)}
     ${PALETTE_GLSL}
     ${NOISE}
+    ${source ? SOURCE_GLSL : ''}
   `;
+}
+
+// A texture that follows ctx.source (sample, upload or webcam), refreshed only when it changes.
+export function sourceTexture(ctx) {
+  const tex = new THREE.CanvasTexture(ctx.source.canvas);
+  tex.colorSpace = THREE.NoColorSpace;
+  tex.minFilter = THREE.LinearFilter;
+  tex.generateMipmaps = false;
+  let seen = -1;
+  return {
+    texture: tex,
+    update(uniforms) {
+      if (seen === ctx.source.version) return;
+      seen = ctx.source.version;
+      // A new upload can change the canvas size, which needs a fresh GPU texture.
+      if (tex.image.width !== tex.userData.w || tex.image.height !== tex.userData.h) { tex.dispose(); tex.userData = { w: tex.image.width, h: tex.image.height }; }
+      tex.needsUpdate = true;
+      if (uniforms) { uniforms.uSource.value = tex; uniforms.uSourceAspect.value = ctx.source.aspect; }
+    },
+    dispose: () => tex.dispose(),
+  };
 }
 
 export function paramValue(def, v) {
@@ -65,12 +100,14 @@ export function updateCommonUniforms(u, ctx, modeParams, time, size) {
 }
 
 // `fragment` is the body of the shader *after* the shared header (write your own `void main()`).
-export function createFullscreenShader(ctx, modeParams, fragment, { extraUniforms = {} } = {}) {
+export function createFullscreenShader(ctx, modeParams, fragment, { extraUniforms = {}, source = false } = {}) {
   const stage = createThreeStage(ctx, { ortho: true, background: false });
+  const src = source ? sourceTexture(ctx) : null;
   const uniforms = { ...commonUniforms(modeParams), ...extraUniforms };
+  if (src) { uniforms.uSource = { value: src.texture }; uniforms.uSourceAspect = { value: ctx.source.aspect }; }
   const material = new THREE.ShaderMaterial({
     vertexShader: FS_VERT,
-    fragmentShader: shaderHeader(modeParams) + fragment,
+    fragmentShader: shaderHeader(modeParams, { source }) + fragment,
     uniforms,
     depthTest: false,
   });
@@ -82,8 +119,9 @@ export function createFullscreenShader(ctx, modeParams, fragment, { extraUniform
     resize: (w, h, dpr) => stage.resize(w, h, dpr),
     frame(time) {
       updateCommonUniforms(uniforms, ctx, modeParams, time, stage.size);
+      src?.update(uniforms);
       stage.render(time);
     },
-    dispose: () => stage.dispose(),
+    dispose: () => { src?.dispose(); stage.dispose(); },
   };
 }

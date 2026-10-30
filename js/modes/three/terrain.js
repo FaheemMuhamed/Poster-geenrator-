@@ -96,7 +96,7 @@ export default {
       uScale: { value: 1 }, uDot: { value: 1 }, uRipple: { value: 1 }, uColorBy: { value: 0 },
       uShift: { value: 0 }, uHalf: { value: P.grid / 2 }, uFogNear: { value: 6 }, uFogFar: { value: 14 },
       uPill: { value: P.shape === 'Pill' ? 1 : 0 },
-      uRip: { value: Array.from({ length: RIPPLES }, () => new THREE.Vector4()) },
+      uRip: { value: Array.from({ length: RIPPLES }, () => new THREE.Vector4(0, 0, -100, 0)) }, // w = 0: empty slot (Vector4 defaults w to 1)
       uPal: { value: paletteUniform(ctx.state.colors) },
     };
     const mat = new THREE.ShaderMaterial({ vertexShader: vertex, fragmentShader: fragment, uniforms });

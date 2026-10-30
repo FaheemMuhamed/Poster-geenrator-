@@ -7,7 +7,7 @@ import fs from 'node:fs';
 // Dev-only: lets capture.html save preview clips and example posters into public/.
 // Only active under `npm run dev`; it is never part of the built site.
 function captureEndpoint() {
-  const ALLOWED = new Set(['previews', 'examples']);
+  const ALLOWED = new Set(['previews', 'examples', 'samples']);
   return {
     name: 'capture-endpoint',
     apply: 'serve',
