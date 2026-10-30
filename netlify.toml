@@ -1,0 +1,8 @@
+# Netlify builds a preview link for every pull request (and branch).
+# The official live site is still GitHub Pages, deployed from main.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
