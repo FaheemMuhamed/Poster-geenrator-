@@ -10,6 +10,7 @@ import {
   settingsOf, embedCode, downloadStandaloneHTML, BLEND_CSS,
 } from './shared/export.js';
 import { makeRandom } from './shared/random.js';
+import { encodeShort, decodeShort, isShortHash, exampleFromHash, readValue } from './shared/shortlink.js';
 
 export { MODES, PALETTES, EXPORT_SIZES };
 
@@ -72,10 +73,18 @@ function debounce(fn, ms) {
   return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
 }
 
+// Any link format: short (#terrain/123?…), or the older long base64 one.
+function readHash(hash) {
+  if (!hash || hash.length < 2) return null;
+  if (exampleFromHash(hash) != null) return null;
+  if (isShortHash(hash)) { try { return decodeShort(hash, DEFAULT_STATE); } catch { return null; } }
+  return decodeState(hash);
+}
+
 // `els`: { viewport, stage, scene, typeCanvas }. `notify(msg)` shows a toast. `embed`: poster only.
 export function createEngine({ els, notify = () => {}, embed = false }) {
   // Settings come from (in order): the link, a downloaded HTML file's baked-in settings, defaults.
-  const state = merge(structuredClone(DEFAULT_STATE), migrate(decodeState(location.hash) || window.POSTER_STATE));
+  const state = merge(structuredClone(DEFAULT_STATE), migrate(readHash(location.hash) || window.POSTER_STATE));
   state.textHidden = false;
 
   // ---------- Change notifications for the UI ----------
@@ -83,9 +92,12 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
   let version = 0;
   const emit = () => { version++; listeners.forEach((fn) => fn()); };
   let active = true;
-  const saveUrlNow = () => { if (!embed && active && !preview) history.replaceState(null, '', '#' + encodeState(state)); };
+  // An untouched poster opened from Explore keeps its short #example/<id> link.
+  let fromExample = null;
+  const toHash = () => (fromExample != null ? `example/${fromExample}` : mode ? encodeShort(state, mode, DEFAULT_STATE) : encodeState(state));
+  const saveUrlNow = () => { if (!embed && active && !preview) history.replaceState(null, '', '#' + toHash()); };
   const saveUrl = debounce(saveUrlNow, 300);
-  const changed = () => { typeDirty = true; emit(); saveUrl(); };
+  const changed = () => { fromExample = null; typeDirty = true; emit(); saveUrl(); };
 
   // Hover previews keep a copy of what they changed and put it back afterwards.
   let preview = null;
@@ -196,10 +208,13 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     if (token !== switching || destroyed) return;
     mode = def;
     state.mode = def.id;
-    const defaults = Object.fromEntries(Object.entries(def.params || {}).map(([k, p]) => [k, p.value]));
-    state.params[def.id] = { ...defaults, ...(state.params[def.id] || {}) };
+    // Saved values may be text (from a short link): type each by its default, drop unknown keys.
+    const saved = state.params[def.id] || {};
+    state.params[def.id] = Object.fromEntries(Object.entries(def.params || {}).map(([k, p]) =>
+      [k, k in saved ? (typeof p.value === 'string' && p.options && !p.options.includes(saved[k]) ? p.value : readValue(saved[k], p.value)) : p.value]));
     buildInstance();
-    changed();
+    // Loading a mode isn't an edit, so an example keeps its short link.
+    typeDirty = true; emit(); saveUrl();
   }
 
   // ---------- Ambient glow ----------
@@ -258,9 +273,11 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     getVersion: () => version,
 
-    setMode,
+    // Picking a mode yourself is an edit (unlike loading a link or example).
+    setMode(id) { fromExample = null; return setMode(id); },
     stepMode(dir) {
       const i = MODES.findIndex((m) => m.id === state.mode);
+      fromExample = null;
       setMode(MODES[(i + dir + MODES.length) % MODES.length].id);
     },
 
@@ -322,20 +339,32 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
       if (on) { last = performance.now(); raf = requestAnimationFrame(loop); saveUrlNow(); }
     },
     saveUrlNow,
+    toHash,
 
     // Replace all settings (e.g. opening an example from Explore).
-    load(settings) {
+    load(settings, { exampleId = null } = {}) {
       endPreview();
+      fromExample = exampleId;
       // Stop the running poster first: its settings are about to be replaced.
       // Clearing `mode` too tells the UI there's nothing to show until the new mode loads.
       if (instance) { try { instance.dispose(); } catch (e) { console.warn(e); } instance = null; }
       mode = null;
       const next = merge(structuredClone(DEFAULT_STATE), migrate(structuredClone(settings)));
       for (const k of Object.keys(state)) if (!(k in next)) delete state[k];
-      Object.assign(state, next, { textHidden: false });
+      // The ambient-glow switch is the viewer's preference, not part of a poster.
+      Object.assign(state, next, { textHidden: false, ui: state.ui });
       loadFont(state.text, () => { typeDirty = true; });
       fitStage();
       setMode(state.mode);
+    },
+
+    // Load whatever poster a link describes (used by browser Back/Forward).
+    loadFromHash(hash) {
+      const exampleId = exampleFromHash(hash);
+      if (exampleId == null) { const s = readHash(hash); if (s) api.load(s); return; }
+      fetch(`${import.meta.env.BASE_URL}examples/examples.json`).then((r) => r.json())
+        .then((d) => { const ex = d.examples.find((e) => e.id === exampleId); if (ex && !destroyed) api.load(ex.settings, { exampleId }); })
+        .catch(() => notify("Couldn't load that example"));
     },
 
     // Hover previews: try a look on the live poster without committing it.
@@ -355,6 +384,7 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
     setText(key, v) {
       if (key in state.text.lines) state.text.lines[key] = v;
       else state.text[key] = v;
+      fromExample = null;
       const redraw = () => { typeDirty = true; instance?.onParam?.('text'); emit(); };
       if (['font', 'weight', 'bodyFont', 'bodyWeight'].includes(key)) loadFont(state.text, redraw);
       redraw();
@@ -387,11 +417,11 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
       } catch (e) { notify(e.message); }
     },
     async copyLink() {
-      history.replaceState(null, '', '#' + encodeState(state));
+      history.replaceState(null, '', '#' + toHash());
       await copyText(location.href, 'Share link copied');
     },
     copyEmbed() {
-      copyText(embedCode(state, FORMATS[state.format]),
+      copyText(embedCode(toHash(), FORMATS[state.format]),
         isLocal() ? 'Embed code copied. It works on other sites once published' : 'Embed code copied');
     },
     async downloadHTML() {
@@ -435,6 +465,9 @@ export function createEngine({ els, notify = () => {}, embed = false }) {
   document.fonts.ready.then(() => { typeDirty = true; });
   setMode(state.mode);
   raf = requestAnimationFrame(loop);
+
+  // #example/<id> needs the examples file, so it loads a moment later.
+  if (exampleFromHash(location.hash) != null) api.loadFromHash(location.hash);
 
   // Handy for debugging in the browser console.
   window.poster = api;
