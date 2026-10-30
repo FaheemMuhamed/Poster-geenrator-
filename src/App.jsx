@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createEngine } from '../js/engine.js';
-import { encodeState, decodeState } from '../js/shared/export.js';
 import { EngineContext } from './useEngine.js';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -47,7 +46,7 @@ export default function App() {
   const go = useCallback((v) => {
     const e = engineRef.current;
     if (v === 'explore') history.pushState(null, '', EXPLORE_HASH);
-    else if (e) history.pushState(null, '', '#' + encodeState(e.state));
+    else if (e) history.pushState(null, '', '#' + e.toHash());
     setView(v);
   }, []);
 
@@ -57,8 +56,7 @@ export default function App() {
       setView('create');
       // Going back to an earlier poster: load the settings stored in that address.
       const e = engineRef.current;
-      const saved = decodeState(location.hash);
-      if (e && saved && location.hash.slice(1) !== encodeState(e.state)) e.load(saved);
+      if (e && location.hash !== '#' + e.toHash()) e.loadFromHash(location.hash);
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
@@ -109,7 +107,7 @@ export default function App() {
                 <Suspense fallback={<div className="grid h-full place-items-center text-[13px] text-neutral-500">Loading the universe…</div>}>
                   <Explore
                     initialSelected={lastOpened}
-                    onOpen={(example) => { setLastOpened(example.id); engine.load(example.settings); go('create'); }}
+                    onOpen={(example) => { setLastOpened(example.id); engine.load(example.settings, { exampleId: example.id }); go('create'); }}
                   />
                 </Suspense>
               </ErrorBoundary>

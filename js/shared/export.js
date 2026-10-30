@@ -75,8 +75,9 @@ export function siteUrl() {
   return location.origin + location.pathname.replace(/index\.html$/, '');
 }
 
-export function embedCode(state, aspect) {
-  const src = `${siteUrl()}?embed=1#${encodeState(state)}`;
+// `hash` is the poster's link code (engine.toHash()).
+export function embedCode(hash, aspect) {
+  const src = `${siteUrl()}?embed=1#${hash}`;
   return `<iframe src="${src}" title="Poster" loading="lazy" style="width:100%;aspect-ratio:${aspect.toFixed(4)};border:0;display:block" allow="fullscreen"></iframe>`;
 }
 

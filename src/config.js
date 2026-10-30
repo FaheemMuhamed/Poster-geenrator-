@@ -6,8 +6,8 @@ export const CONFIG = {
   TALLY_FORM_ID: 'kbbMjo',
   // Fallback when no Tally form is set.
   FEEDBACK_EMAIL: '',
-  REPO_URL: 'https://github.com/FaheemMuhamed/Poster-geenrator-',
-  SITE_URL: 'https://faheemmuhamed.github.io/Poster-geenrator-/',
+  REPO_URL: 'https://github.com/FaheemMuhamed/poster-generator',
+  SITE_URL: 'https://faheemmuhamed.github.io/poster-generator/',
 };
 
 // Link to a mode's source file, for "How it works".
