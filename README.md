@@ -6,13 +6,30 @@ Built with [p5.js](https://p5js.org) (2D modes), [three.js](https://threejs.org)
 
 ## Using it
 
-- **Left:** the 15 modes, grouped into 2D, 3D and Shader.
-- **Top bar:** format (A-series, 4:5, 9:16, square, landscape), pause, new variation, "surprise me", and **Export**.
+- **Create / Explore** (top left) switches between the editor and **Explore**, a 3D universe of 120 example posters. Drag to drift through it and click a poster to see it larger. **Open in editor** loads it with every setting live.
+- **Left:** the modes, grouped into 2D (p5.js), 3D (three.js) and Shaders (GLSL). You can search them or filter by tag. Hover a mode to see a moving preview. Under the mode name, **How it works** explains the technique and links to its source code.
+- **Top bar:** format (A-series, 4:5, 9:16, square, landscape), pause, new variation, "surprise me", the ambient glow switch (sun icon), **Feedback**, **Support**, and **Export**.
+- **Ambient glow:** the poster's colours softly light up the canvas around it, like a TV's ambient light. It never appears in exports.
 - **Right, the inspector:** four tabs, each starting with the essentials. Everything else is folded underneath.
   - **Shape:** 3–4 essential controls for the current mode, then folded groups (Form, Motion, Variation…).
   - **Colour:** palette presets, then fine-tuning of each colour.
-  - **Type:** your words, a **layout picker** with live thumbnails, and the typeface. Switch on **Grid** to see the layout's grid as guides; guides are never exported.
-  - **Finish:** one-click looks (Clean, Soft print, Dreamy, Halftone, Riso, 2-colour, Glitch, Pixel), then fine-tuning. 2D modes get background bloom and grain here.
+  - **Colour:** palette presets (hover one to preview it on the poster), then fine-tuning of each colour.
+  - **Type:** your words, a **layout picker** with live thumbnails, and two typefaces: one for the title and one for the text. Each has a weight. Switch on **Grid** to see the layout's grid as guides; guides are never exported. **Typesetting** adds tracking, leading, case, an outline title, and blend modes (Difference / Multiply).
+  - **Finish:** one-click looks (Clean, Soft print, Dreamy, Halftone, Riso, 2-colour, Glitch, Pixel). Hover one to preview it, then fine-tune. 2D modes get background bloom and grain here.
+
+### Typefaces
+
+The library has 53 families:
+- **34 self-hosted:** from [The League of Moveable Type](https://www.theleagueofmoveabletype.com/), [Collletttivo](https://www.collletttivo.it/typefaces), [Open Foundry](https://open-foundry.com/) and [uncut.wtf](https://uncut.wtf/). All are under the SIL Open Font License; see `public/fonts/CREDITS.md`.
+- **19 contemporary Google Fonts.**
+
+The font picker can be searched and filtered by category. Credits are listed in the Support dialog.
+
+### Support and feedback
+
+Paste your links into `src/config.js`:
+- `DONATE_URL`: a Stripe Payment Link or a Gumroad "pay what you want" product. Until it's set, the Support dialog says "Donations open soon".
+- `TALLY_FORM_ID`: the id from your Tally form link (`tally.so/r/<id>`). Feedback arrives with the visitor's mode and poster link.
 
 **Keyboard:** `R` new variation · `S` save PNG · `Space` pause · `←` `→` switch modes
 
@@ -64,6 +81,10 @@ You only do this once.
 2. Write a short summary and click **Commit to main**.
 3. Click **Push origin**.
 4. GitHub rebuilds the site automatically, in about 1–2 minutes. You can watch it in the repository's **Actions** tab.
+
+## Growing the library
+
+To add a new shader or effect, follow [docs/ADDING_A_MODE.md](docs/ADDING_A_MODE.md). It covers the file shape, the registry entry, choosing essentials, and capturing previews and examples with `capture.html`, a page that only runs in development.
 
 ## Where things live
 

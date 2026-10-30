@@ -1,6 +1,9 @@
 // PNG export (any resolution), video recording, and shareable links.
 import { drawType } from './typeLayer.js';
 
+export const BLEND_OPS = { Normal: 'source-over', Difference: 'difference', Multiply: 'multiply' };
+export const BLEND_CSS = { Normal: 'normal', Difference: 'difference', Multiply: 'multiply' };
+
 export const EXPORT_SIZES = { 'Screen': 0, '2K (2048px)': 2048, '4K (4096px)': 4096, '6K (6144px)': 6144 };
 
 function download(blob, name) {
@@ -25,7 +28,12 @@ export function composite(target, sceneCanvas, w, h, dpr, state) {
   c.fillRect(0, 0, W, H);
   if (sceneCanvas) c.drawImage(sceneCanvas, 0, 0, W, H);
   c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  if (!state.textHidden) drawType(c, w, h, state.text, state.colors);
+  if (!state.textHidden) {
+    // Same blend as the live overlay's CSS mix-blend-mode.
+    c.globalCompositeOperation = BLEND_OPS[state.text.blend] || 'source-over';
+    drawType(c, w, h, state.text, state.colors);
+    c.globalCompositeOperation = 'source-over';
+  }
   return target;
 }
 

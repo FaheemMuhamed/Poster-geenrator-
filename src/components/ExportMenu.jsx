@@ -20,7 +20,7 @@ function Row({ icon: Icon, children, onClick, hint }) {
 }
 
 function Heading({ children }) {
-  return <div className="px-2 pb-1 pt-1 text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-400">{children}</div>;
+  return <div className="px-2 pb-1 pt-1 text-[12px] font-medium text-neutral-800">{children}</div>;
 }
 
 export default function ExportMenu() {
