@@ -8,7 +8,7 @@ const BASE = import.meta.env.BASE_URL;
 const GROUPS = ['All', '2D', '3D', 'Shader'];
 const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export default function Explore({ onOpen }) {
+export default function Explore({ onOpen, initialSelected = null }) {
   const mountRef = useRef(null);
   const labelRef = useRef(null);
   const uniRef = useRef(null);
@@ -32,6 +32,9 @@ export default function Explore({ onOpen }) {
       });
     } catch (e) { console.error(e); setError(true); return; }
     uniRef.current = uni;
+    // Coming back from the editor: reopen the poster you left from.
+    const back = data.examples.findIndex((e) => e.id === initialSelected);
+    if (back >= 0) uni.select(back);
     // Keep the hover label pinned above the hovered poster.
     let raf;
     const follow = () => {
@@ -137,7 +140,7 @@ export default function Explore({ onOpen }) {
               </div>
             </div>
             <div className="p-5">
-              <Button className="h-10 w-full gap-2" onClick={() => onOpen(selected.settings)}>
+              <Button className="h-10 w-full gap-2" onClick={() => onOpen(selected)}>
                 <PenLine className="size-4" /> Open in editor
               </Button>
               <p className="mt-2 text-center text-[11px] text-neutral-400">It opens live, with every setting ready to change.</p>

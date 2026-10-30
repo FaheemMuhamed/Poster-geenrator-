@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createEngine } from '../js/engine.js';
+import { encodeState, decodeState } from '../js/shared/export.js';
 import { EngineContext } from './useEngine.js';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -24,6 +25,9 @@ export default function App() {
   const ambientRef = useRef(null);
   const [engine, setEngine] = useState(null);
   const [view, setView] = useState(() => (!EMBED && location.hash === EXPLORE_HASH ? 'explore' : 'create'));
+  // The example last opened from Explore, so browser Back returns to it.
+  const [lastOpened, setLastOpened] = useState(null);
+  const engineRef = useRef(null);
 
   useEffect(() => {
     const e = createEngine({
@@ -32,19 +36,30 @@ export default function App() {
       embed: EMBED,
     });
     setEngine(e);
+    engineRef.current = e;
     return () => e.destroy();
   }, []);
 
   // The editor keeps running in the background but sleeps while exploring.
   useEffect(() => { engine?.setActive(view === 'create'); }, [engine, view]);
 
+  // Each switch between Create and Explore is a browser history step, so Back/Forward work.
   const go = useCallback((v) => {
+    const e = engineRef.current;
     if (v === 'explore') history.pushState(null, '', EXPLORE_HASH);
+    else if (e) history.pushState(null, '', '#' + encodeState(e.state));
     setView(v);
   }, []);
 
   useEffect(() => {
-    const onPop = () => setView(location.hash === EXPLORE_HASH ? 'explore' : 'create');
+    const onPop = () => {
+      if (location.hash === EXPLORE_HASH) return setView('explore');
+      setView('create');
+      // Going back to an earlier poster: load the settings stored in that address.
+      const e = engineRef.current;
+      const saved = decodeState(location.hash);
+      if (e && saved && location.hash.slice(1) !== encodeState(e.state)) e.load(saved);
+    };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
@@ -82,7 +97,7 @@ export default function App() {
   return (
     <TooltipProvider delayDuration={300}>
       <div className="flex h-full flex-col">
-        {withEngine(<TopBar view={view} onView={go} />)}
+        {withEngine(<TopBar view={view} onView={(v) => { if (v === 'explore') setLastOpened(null); go(v); }} />)}
         <div className="relative flex min-h-0 flex-1 flex-col md:flex-row">
           <ErrorBoundary>{withEngine(<ModeList />)}</ErrorBoundary>
           <main className="relative isolate flex min-h-[55vh] min-w-0 flex-1 overflow-hidden bg-neutral-100">{stage}</main>
@@ -93,7 +108,8 @@ export default function App() {
               <ErrorBoundary>
                 <Suspense fallback={<div className="grid h-full place-items-center text-[13px] text-neutral-500">Loading the universe…</div>}>
                   <Explore
-                    onOpen={(settings) => { engine.load(settings); go('create'); history.replaceState(null, '', location.pathname + location.search); }}
+                    initialSelected={lastOpened}
+                    onOpen={(example) => { setLastOpened(example.id); engine.load(example.settings); go('create'); }}
                   />
                 </Suspense>
               </ErrorBoundary>
