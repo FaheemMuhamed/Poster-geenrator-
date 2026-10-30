@@ -14,6 +14,7 @@ import FontPicker from './FontPicker.jsx';
 import { useEngine } from '../useEngine.js';
 import { ParamField, Section, SelectField, SliderField, SwitchField, TextField } from './Field.jsx';
 import LayoutPicker from './LayoutPicker.jsx';
+import CodeTab from './CodeTab.jsx';
 import { cn } from '@/lib/utils';
 
 const COLOR_KEYS = [['bg', 'Background'], ['ink', 'Ink'], ['c1', 'Accent 1'], ['c2', 'Accent 2'], ['c3', 'Accent 3'], ['c4', 'Accent 4']];
@@ -72,10 +73,10 @@ function ColourTab({ engine }) {
               onClick={() => engine.setPalette(name)}
               onMouseEnter={() => engine.previewPalette(name)}
               onMouseLeave={() => engine.endPreview()}
-              className={cn('overflow-hidden rounded-md border text-left transition', state.palette === name ? 'border-neutral-900 ring-1 ring-neutral-900' : 'border-neutral-200 hover:border-neutral-400')}
+              className={cn('overflow-hidden rounded-md border text-left transition', state.palette === name ? 'border-foreground ring-1 ring-foreground' : 'border-border hover:border-foreground/40')}
             >
               <div className="flex h-7">{[p.bg, p.c1, p.c2, p.c3, p.c4, p.ink].map((c, i) => <div key={i} className="flex-1" style={{ background: c }} />)}</div>
-              <div className="px-2 py-1 text-[11px] text-neutral-600">{name}</div>
+              <div className="px-2 py-1 text-[11px] text-muted-foreground">{name}</div>
             </button>
           ))}
         </div>
@@ -83,12 +84,12 @@ function ColourTab({ engine }) {
       <Section title="Fine-tune colours">
         <div className="space-y-1">
           {COLOR_KEYS.map(([k, label]) => (
-            <label key={k} className="flex cursor-pointer items-center gap-3 rounded-md px-1 py-1 hover:bg-neutral-50">
-              <span className="relative size-6 shrink-0 overflow-hidden rounded-full ring-1 ring-black/10" style={{ background: state.colors[k] }}>
+            <label key={k} className="flex cursor-pointer items-center gap-3 rounded-md px-1 py-1 hover:bg-muted/50">
+              <span className="relative size-6 shrink-0 overflow-hidden rounded-full ring-1 ring-foreground/10" style={{ background: state.colors[k] }}>
                 <input type="color" value={state.colors[k]} onChange={(e) => engine.setColor(k, e.target.value)} className="absolute inset-0 cursor-pointer opacity-0" />
               </span>
-              <span className="flex-1 text-[12px] text-neutral-600">{label}</span>
-              <span className="font-mono text-[11px] uppercase text-neutral-400">{state.colors[k]}</span>
+              <span className="flex-1 text-[12px] text-muted-foreground">{label}</span>
+              <span className="font-mono text-[11px] uppercase text-muted-foreground/70">{state.colors[k]}</span>
             </label>
           ))}
         </div>
@@ -104,7 +105,7 @@ function TypeTab({ engine }) {
   return (
     <>
       <Section title="Words" collapsible={false} aside={<Switch checked={t.show} onCheckedChange={(v) => engine.setText('show', v)} />}>
-        {owns && <p className="mb-2 rounded-md bg-neutral-50 px-2.5 py-2 text-[11px] leading-relaxed text-neutral-500">This mode sets the words inside the artwork itself.</p>}
+        {owns && <p className="mb-2 rounded-md bg-muted/50 px-2.5 py-2 text-[11px] leading-relaxed text-muted-foreground">This mode sets the words inside the artwork itself.</p>}
         <Input value={t.lines.title} onChange={(e) => engine.setText('title', e.target.value)} placeholder="Title" className="mb-1.5 h-9 text-[14px] font-medium" />
         <TextField value={t.lines.subtitle} placeholder="Subtitle" onChange={(v) => engine.setText('subtitle', v)} />
         <div className="grid grid-cols-2 gap-2">
@@ -114,7 +115,7 @@ function TypeTab({ engine }) {
         <TextField value={t.lines.footer} placeholder="Footer" onChange={(v) => engine.setText('footer', v)} />
       </Section>
       <Section title="Layout" defaultOpen aside={
-        <label className="flex items-center gap-1.5 text-[11px] normal-case tracking-normal text-neutral-500" onClick={(e) => e.stopPropagation()}>
+        <label className="flex items-center gap-1.5 text-[11px] normal-case tracking-normal text-muted-foreground" onClick={(e) => e.stopPropagation()}>
           Grid <Switch checked={t.grid} onCheckedChange={(v) => engine.setText('grid', v)} className="scale-75" />
         </label>
       }>
@@ -127,11 +128,11 @@ function TypeTab({ engine }) {
         <WeightPicker font={t.bodyFont} value={t.bodyWeight} onChange={(v) => engine.setText('bodyWeight', v)} />
         <SliderField label="Size" value={t.size} min={0.4} max={2.5} step={0.01} onChange={(v) => engine.setText('size', v)} />
         <div className="flex items-center justify-between py-1.5">
-          <span className="text-[12px] text-neutral-600">Colour</span>
+          <span className="text-[12px] text-muted-foreground">Colour</span>
           <div className="flex gap-1.5">
             {COLOR_KEYS.map(([k, label]) => (
               <button key={k} title={label} onClick={() => engine.setText('color', k)}
-                className={cn('size-5 rounded-full ring-1 ring-black/10', t.color === k && 'ring-2 ring-neutral-900 ring-offset-2')}
+                className={cn('size-5 rounded-full ring-1 ring-foreground/10', t.color === k && 'ring-2 ring-foreground ring-offset-2')}
                 style={{ background: state.colors[k] }} />
             ))}
           </div>
@@ -152,7 +153,7 @@ function TypeTab({ engine }) {
 function Segmented({ label, value, options, onChange }) {
   return (
     <div className="flex items-center justify-between gap-3 py-1">
-      <span className="text-[12px] text-neutral-600">{label}</span>
+      <span className="text-[12px] text-muted-foreground">{label}</span>
       <ToggleGroup type="single" variant="outline" size="sm" value={String(value)} onValueChange={(v) => v && onChange(v)}>
         {options.map(([v, l]) => <ToggleGroupItem key={v} value={v} className="px-2.5 text-[11px]">{l}</ToggleGroupItem>)}
       </ToggleGroup>
@@ -181,7 +182,7 @@ function FinishTab({ engine }) {
         <Section title="Texture" collapsible={false}>
           <SliderField label="Film grain" value={state.grain} min={0} max={1} step={0.01} onChange={(v) => engine.setGrain(v)} />
         </Section>
-        <p className="px-4 py-3 text-[11px] leading-relaxed text-neutral-400">Halftone, dither, glow and other print effects are available in the 3D and Shader modes.</p>
+        <p className="px-4 py-3 text-[11px] leading-relaxed text-muted-foreground/70">Halftone, dither, glow and other print effects are available in the 3D and Shader modes.</p>
       </>
     );
   }
@@ -199,7 +200,7 @@ function FinishTab({ engine }) {
               onMouseLeave={() => engine.endPreview()}>{name}</Button>
           ))}
         </div>
-        {!active && <p className="mt-2 text-[11px] text-neutral-400">Custom mix</p>}
+        {!active && <p className="mt-2 text-[11px] text-muted-foreground/70">Custom mix</p>}
       </Section>
       <Section title="Light">
         <SliderField label="Glow" value={fx.bloom} min={0} max={3} step={0.01} onChange={set('bloom')} />
@@ -226,24 +227,24 @@ function FinishTab({ engine }) {
 export default function Inspector() {
   const engine = useEngine();
   const mode = engine.mode;
-  if (!mode) return <aside className="w-[300px] shrink-0 border-l border-neutral-200 bg-white" />;
+  if (!mode) return <aside className="w-[300px] shrink-0 border-l border-border bg-background" />;
   const meta = MODES.find((m) => m.id === mode.id);
   return (
-    <aside className="flex h-[45vh] w-full shrink-0 flex-col border-t border-neutral-200 bg-white md:h-auto md:w-[300px] md:border-l md:border-t-0">
+    <aside className="flex h-[45vh] w-full shrink-0 flex-col border-t border-border bg-background md:h-auto md:w-[300px] md:border-l md:border-t-0">
       <div className="px-4 pb-3 pt-4">
-        <h2 className="text-[15px] font-semibold tracking-tight">{mode.name}</h2>
-        {mode.hint && <p className="mt-0.5 text-[12px] text-neutral-500">{mode.hint}</p>}
+        <h2 className="text-[17px] leading-tight font-semibold tracking-tight">{mode.name}</h2>
+        {mode.hint && <p className="mt-0.5 text-[12px] text-muted-foreground">{mode.hint}</p>}
         {meta && (
           <details className="group mt-2 text-[12px]">
-            <summary className="flex cursor-pointer list-none items-center gap-1 text-neutral-500 hover:text-neutral-800">
+            <summary className="flex cursor-pointer list-none items-center gap-1 text-muted-foreground hover:text-foreground">
               <ChevronRight className="size-3.5 transition-transform group-open:rotate-90" /> How it works
             </summary>
-            <div className="mt-2 space-y-2 rounded-md bg-neutral-50 p-2.5 leading-snug">
-              <p className="text-neutral-700">{meta.description}</p>
-              <p className="text-neutral-500">{meta.technique}</p>
+            <div className="mt-2 space-y-2 rounded-md bg-muted/50 p-2.5 leading-snug">
+              <p className="text-foreground">{meta.description}</p>
+              <p className="text-muted-foreground">{meta.technique}</p>
               <div className="flex flex-wrap items-center gap-1">
-                {meta.tags.map((t) => <span key={t} className="rounded-full bg-white px-1.5 py-0.5 text-[10.5px] text-neutral-500 ring-1 ring-neutral-200">{t}</span>)}
-                <a href={sourceUrl(modeFile(meta))} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-neutral-500 underline-offset-2 hover:text-neutral-900 hover:underline">
+                {meta.tags.map((t) => <span key={t} className="rounded-full bg-card px-1.5 py-0.5 text-[10.5px] text-muted-foreground ring-1 ring-border">{t}</span>)}
+                <a href={sourceUrl(modeFile(meta))} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
                   <Code2 className="size-3" /> View source
                 </a>
               </div>
@@ -253,17 +254,19 @@ export default function Inspector() {
       </div>
       <Tabs defaultValue="shape" className="flex min-h-0 flex-1 flex-col gap-0">
         <div className="px-4 pb-1">
-          <TabsList className="grid h-8 w-full grid-cols-4">
-            {['shape', 'colour', 'type', 'finish'].map((t) => (
-              <TabsTrigger key={t} value={t} className="text-[12px] capitalize">{t}</TabsTrigger>
+          <TabsList className="grid h-8 w-full grid-cols-5">
+            {['shape', 'colour', 'type', 'finish', 'code'].map((t) => (
+              <TabsTrigger key={t} value={t} className="px-1 text-[12px] capitalize">{t}</TabsTrigger>
             ))}
           </TabsList>
         </div>
-        <ScrollArea className="min-h-0 flex-1">
+        {/* block (not Radix's default table) so wide code scrolls inside its box */}
+        <ScrollArea className="min-h-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:block!">
           <TabsContent value="shape" className="mt-0"><ShapeTab engine={engine} /></TabsContent>
           <TabsContent value="colour" className="mt-0"><ColourTab engine={engine} /></TabsContent>
           <TabsContent value="type" className="mt-0"><TypeTab engine={engine} /></TabsContent>
           <TabsContent value="finish" className="mt-0"><FinishTab engine={engine} /></TabsContent>
+          <TabsContent value="code" className="mt-0"><CodeTab engine={engine} /></TabsContent>
         </ScrollArea>
       </Tabs>
     </aside>

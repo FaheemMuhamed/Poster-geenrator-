@@ -1,32 +1,63 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* shadcn/ui neutral light theme */
+@custom-variant dark (&:is(.dark *));
+
+/* Morva · Catalogue theme (see docs/BRAND.md). Warm-grey neutrals, one signal orange. */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.985 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --radius: 0.3125rem;
+  --stage: #e9e9e6;
+  --background: #f7f7f5;
+  --foreground: #111111;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --popover: #ffffff;
+  --popover-foreground: #111111;
+  --primary: #111111;
+  --primary-foreground: #f7f7f5;
+  --secondary: #ececea;
+  --secondary-foreground: #111111;
+  --muted: #ececea;
+  --muted-foreground: #6b6b66;
+  --accent: #e6e6e3;
+  --accent-foreground: #111111;
+  --signal: #ff4a1c;
+  --signal-foreground: #111111;
+  --destructive: #d92d20;
+  --border: #d9d9d5;
+  --input: #d3d3cf;
+  --ring: #8a8a85;
   color-scheme: light;
 }
 
+.dark {
+  --stage: #0f0f0e;
+  --background: #161615;
+  --foreground: #ededea;
+  --card: #1d1d1c;
+  --card-foreground: #ededea;
+  --popover: #1d1d1c;
+  --popover-foreground: #ededea;
+  --primary: #ededea;
+  --primary-foreground: #111111;
+  --secondary: #242423;
+  --secondary-foreground: #ededea;
+  --muted: #222221;
+  --muted-foreground: #9a9a94;
+  --accent: #2a2a28;
+  --accent-foreground: #ededea;
+  --signal: #ff5a2e;
+  --signal-foreground: #111111;
+  --destructive: #f04438;
+  --border: #2b2b29;
+  --input: #333331;
+  --ring: #6b6b66;
+  color-scheme: dark;
+}
+
 @theme inline {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Newsreader", Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -47,6 +78,9 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-stage: var(--stage);
+  --color-signal: var(--signal);
+  --color-signal-foreground: var(--signal-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -71,3 +105,10 @@
   transition: opacity 0.6s ease;
 }
 @media (prefers-reduced-motion: reduce) { #ambient { transition: none; } }
+
+html.embed, html.embed body { background: transparent; }
+
+/* The Morva seal: a disc that slowly becomes a square and back. */
+.morva-seal { border-radius: 50%; animation: morva-seal 9s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+@keyframes morva-seal { 0%, 12% { border-radius: 50%; } 45%, 62% { border-radius: 2px; } 100% { border-radius: 50%; } }
+@media (prefers-reduced-motion: reduce) { .morva-seal { animation: none; border-radius: 30%; } }

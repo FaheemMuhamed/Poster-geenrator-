@@ -49,14 +49,14 @@ Shader modes get every param as a GLSL uniform `p_<name>` for free, plus `uTime`
 Add one entry to `js/modes/index.js`:
 
 ```js
-{ id: 'my-mode', name: 'My Mode', group: '2D' | '3D' | 'Shader', library: 'p5' | 'three' | 'glsl',
+{ id: 'my-mode', category: 'Generative' | 'Type' | 'Image', name: 'My Mode', group: '2D' | '3D' | 'Shader', library: 'p5' | 'three' | 'glsl',
   load: () => import('./p5/my-mode.js'),
   description: 'One plain sentence about what you see.',
   technique: 'The generative technique, e.g. "Poisson-disc sampling + Delaunay mesh"',
   tags: ['particles', 'noise'] },
 ```
 
-Reuse existing tags where they fit. Tags power the sidebar filters and Explore.
+`category` is what it makes and decides its sidebar group. Reuse existing tags where they fit; tags power the sidebar filters and Explore.
 
 ## 3. Choose its essentials
 
@@ -75,7 +75,25 @@ With `npm run dev` running, open http://localhost:5173/capture.html and keep the
 
 Commit the new files in `public/previews/` and `public/examples/` with your mode.
 
-## 5. Check
+## 5. Add standalone code (Code tab)
+
+Add `code(values, colors, seed)` to the default export. It returns a small runnable page built with a helper from `js/shared/codegen.js`:
+
+- **Single-pass shader** (it uses `createFullscreenShader`): no extra work.
+  ```js
+  code: (values, colors, seed) => shaderSketch({ id: 'aura', name: 'Aura Gradient', params, values, colors, seed, fragment }),
+  ```
+- **p5.js:** write a plain global-mode sketch (`setup` / `draw`) as a string. It can read `params`, `colors` and `SEED`. See `js/modes/p5/halftone.js`.
+  ```js
+  code: (values, colors, seed) => p5Sketch({ id: 'halftone', name: 'Halftone Field', values, colors, seed, sketch: SKETCH }),
+  ```
+- **three.js:** `threeSketch(...)` works the same way, with `THREE` already imported.
+
+Keep the sketch readable: comments that explain the technique, no grain/bloom/text. Test it by pasting it into an empty `.html` file and opening it in a browser.
+
+Entries without `code` show a "View source on GitHub" link instead.
+
+## 6. Check
 
 - The mode loads with no console errors, and its sliders, palettes and Finish looks work.
 - The hover card plays the clip.

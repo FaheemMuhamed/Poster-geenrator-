@@ -1,20 +1,21 @@
-# Poster Generator
+# Morva
 
-A live, interactive generative poster maker. Pick a mode, move the mouse over the poster, shape it in the inspector, and export a high-resolution PNG, a video or embed code.
+**An archive of generative visuals you can play with.** Morva is a library of live p5.js, three.js and GLSL visuals for designers and creative developers. Shape each one with plain controls, export it as an image, video or embed, and copy standalone code for it.
 
-Built with [p5.js](https://p5js.org) (2D modes), [three.js](https://threejs.org) (3D + shader modes), and a [shadcn/ui](https://ui.shadcn.com) interface (React + Tailwind, bundled with Vite).
+Brand guide: [docs/BRAND.md](docs/BRAND.md). Built with [p5.js](https://p5js.org), [three.js](https://threejs.org) and a [shadcn/ui](https://ui.shadcn.com) interface (React + Tailwind, bundled with Vite).
 
 ## Using it
 
+- **The Morva logo** opens the About page, with a live entry to play with.
 - **Create / Explore** (top left) switches between the editor and **Explore**, a 3D universe of 120 example posters. Drag to drift through it and click a poster to see it larger. **Open in editor** loads it with every setting live.
-- **Left:** the modes, grouped into 2D (p5.js), 3D (three.js) and Shaders (GLSL). You can search them or filter by tag. Hover a mode to see a moving preview. Under the mode name, **How it works** explains the technique and links to its source code.
-- **Top bar:** format (A-series, 4:5, 9:16, square, landscape), pause, new variation, "surprise me", the ambient glow switch (sun icon), **Feedback**, **Support**, and **Export**.
+- **Left:** the entries, grouped by what they make: Generative, Type and (coming next) Image. Each shows its library (p5, three or GLSL). You can search them or filter by tag. Hover a mode to see a moving preview. Under the mode name, **How it works** explains the technique and links to its source code.
+- **Top bar:** format (A-series, 4:5, 9:16, square, landscape), pause, new variation, the ambient glow switch (lamp icon), **Surprise me** (new settings and colours at once), light/dark mode, **Feedback**, **Support**, and **Export**.
 - **Ambient glow:** the poster's colours softly light up the canvas around it, like a TV's ambient light. It never appears in exports.
-- **Right, the inspector:** four tabs, each starting with the essentials. Everything else is folded underneath.
+- **Right, the inspector:** five tabs, each starting with the essentials. Everything else is folded underneath.
   - **Shape:** 3–4 essential controls for the current mode, then folded groups (Form, Motion, Variation…).
-  - **Colour:** palette presets, then fine-tuning of each colour.
   - **Colour:** palette presets (hover one to preview it on the poster), then fine-tuning of each colour.
   - **Type:** your words, a **layout picker** with live thumbnails, and two typefaces: one for the title and one for the text. Each has a weight. Switch on **Grid** to see the layout's grid as guides; guides are never exported. **Typesetting** adds tracking, leading, case, an outline title, and blend modes (Difference / Multiply).
+  - **Code:** a standalone HTML file of the current visual with your settings built in. Copy it, download it, or open it in CodePen. (Available for some entries so far.)
   - **Finish:** one-click looks (Clean, Soft print, Dreamy, Halftone, Riso, 2-colour, Glitch, Pixel). Hover one to preview it, then fine-tune. 2D modes get background bloom and grain here.
 
 ### Typefaces
@@ -31,7 +32,7 @@ Paste your links into `src/config.js`:
 - `DONATE_URL`: a Stripe Payment Link or a Gumroad "pay what you want" product. Until it's set, the Support dialog says "Donations open soon".
 - `TALLY_FORM_ID`: the id from your Tally form link (`tally.so/r/<id>`). Feedback arrives with the visitor's mode and poster link.
 
-**Keyboard:** `R` new variation · `S` save PNG · `Space` pause · `←` `→` switch modes
+**Keyboard:** `R` new variation · `X` surprise me · `S` save PNG · `Space` pause · `←` `→` switch modes
 
 ### Type layouts
 

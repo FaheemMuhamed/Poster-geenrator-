@@ -3,10 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Poster Generator</title>
-  <meta name="description" content="A live, interactive generative poster maker built with p5.js, three.js and GLSL shaders." />
+  <title>Morva</title>
+  <meta name="description" content="Morva is an archive of generative visuals you can play with. Tweak, export and copy the code of live p5.js, three.js and GLSL visuals." />
+  <meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#161615" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="Morva" />
+  <meta property="og:description" content="An archive of generative visuals you can play with." />
+  <meta property="og:image" content="https://faheemmuhamed.github.io/poster-generator/previews/rd.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <script>
+    // Apply the saved or system theme before first paint (see src/useTheme.js).
+    try { var t = localStorage.getItem('morva-theme'); if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark'); } catch (e) {}
+  </script>
 </head>
 <body>
   <div id="root"></div>

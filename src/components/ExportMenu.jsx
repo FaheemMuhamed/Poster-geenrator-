@@ -11,16 +11,16 @@ const SIZES = [['Screen', 'Screen'], ['2K', '2K (2048px)'], ['4K', '4K (4096px)'
 
 function Row({ icon: Icon, children, onClick, hint }) {
   return (
-    <button onClick={onClick} className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] text-neutral-700 hover:bg-neutral-100">
-      <Icon className="size-4 text-neutral-400" />
+    <button onClick={onClick} className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] text-foreground hover:bg-muted">
+      <Icon className="size-4 text-muted-foreground/70" />
       <span>{children}</span>
-      {hint && <span className="ml-auto text-[11px] text-neutral-400">{hint}</span>}
+      {hint && <span className="ml-auto text-[11px] text-muted-foreground/70">{hint}</span>}
     </button>
   );
 }
 
 function Heading({ children }) {
-  return <div className="px-2 pb-1 pt-1 text-[12px] font-medium text-neutral-800">{children}</div>;
+  return <div className="px-2 pb-1 pt-1 text-[12px] font-medium text-foreground">{children}</div>;
 }
 
 export default function ExportMenu() {
@@ -31,7 +31,7 @@ export default function ExportMenu() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button size="sm" className="h-8 gap-1.5"><Download className="size-3.5" /> Export</Button>
+        <Button size="sm" className="h-8 shrink-0 gap-1.5" aria-label="Export"><Download className="size-3.5" /><span className="hidden sm:inline">Export</span></Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-72 p-2">
         <Heading>Image</Heading>
@@ -47,7 +47,7 @@ export default function ExportMenu() {
         <Heading>Video</Heading>
         <div className="flex items-center gap-3 px-2 py-1.5">
           <Slider value={[seconds]} min={2} max={30} step={1} onValueChange={([v]) => setSeconds(v)} />
-          <span className="w-8 text-right font-mono text-[11px] text-neutral-500">{seconds}s</span>
+          <span className="w-8 text-right font-mono text-[11px] text-muted-foreground">{seconds}s</span>
         </div>
         <Row icon={Video} onClick={() => engine.recordVideo(seconds)}>{engine.recording ? 'Recording…' : 'Record video'}</Row>
 

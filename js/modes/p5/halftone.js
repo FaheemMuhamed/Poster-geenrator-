@@ -2,6 +2,7 @@
 // with a soft ghost of the same strokes underneath and glowing cross-shaped flares (ref 4).
 import { createP5Stage } from '../../shared/p5Stage.js';
 import { drawBloom, drawGrain, hexA } from '../../shared/bloom2d.js';
+import { p5Sketch } from '../../shared/codegen.js';
 
 export default {
   id: 'halftone',
@@ -264,4 +265,124 @@ export default {
 
     return { resize: stage.resize, frame: stage.frame, dispose: stage.dispose };
   },
+
+  code: (values, colors, seed) => p5Sketch({ id: 'halftone', name: 'Halftone Field', values, colors, seed, sketch: SKETCH }),
 };
+
+// Standalone p5.js version for the Code tab (no ghost blur, grain or bloom).
+const SKETCH = String.raw`
+// Halftone Field
+// Hidden brush strokes drift under a regular grid of dots. Each dot reads how close
+// it is to a stroke (a soft distance field) and grows with it: that's halftone.
+// A glowing flare follows the cursor. Click to drop a new stroke.
+
+let strokes = [];
+const flare = { x: 0.5, y: 0.3 };
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  randomSeed(SEED);
+  noStroke();
+  for (let i = 0; i < params.blobs; i++) strokes.push(makeStroke(random(0.12, 0.88), random(0.1, 0.9), null));
+}
+
+// A stroke is a short bent capsule that drifts and slowly turns.
+function makeStroke(x, y, life) {
+  return {
+    x, y, life, age: 0,
+    ang: random(TWO_PI), spin: random(-0.12, 0.12), len: random(0.05, 0.13),
+    bend: random(-0.8, 0.8), rad: random(0.016, 0.034), ph: random(100), sp: random(0.05, 0.16),
+  };
+}
+
+function mousePressed() {
+  strokes.push(makeStroke(mouseX / width, mouseY / height, 6));
+}
+
+// Squared distance from point p to the segment a–b.
+function segDist2(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  const t = constrain(((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy || 1), 0, 1);
+  const ex = px - ax - dx * t, ey = py - ay - dy * t;
+  return ex * ex + ey * ey;
+}
+
+function draw() {
+  const t = millis() / 1000, dt = deltaTime / 1000, asp = width / height;
+  background(colors.bg);
+
+  // 1. Where is each stroke this frame? (units: height = 1, x scaled by aspect)
+  const segs = [];
+  for (let i = strokes.length - 1; i >= 0; i--) {
+    const s = strokes[i];
+    let grow = 1;
+    if (s.life !== null) { // clicked strokes fade in, then out
+      s.age += dt;
+      if (s.age > s.life) { strokes.splice(i, 1); continue; }
+      grow = min(1, s.age / 0.6) * min(1, (s.life - s.age) / 1.5);
+    }
+    const cx = (s.x + sin(t * s.sp + s.ph) * 0.06) * asp;
+    const cy = s.y + cos(t * s.sp * 0.8 + s.ph * 1.7) * 0.05;
+    const a = s.ang + t * s.spin, L = s.len * params.blobSize;
+    const ux = cos(a) * L, uy = sin(a) * L;
+    const b = s.bend + sin(t * 0.3 + s.ph) * 0.3;
+    segs.push([cx - ux, cy - uy, cx - uy * b, cy + ux * b, cx + ux, cy + uy, s.rad * params.blobSize * grow]);
+  }
+
+  // 2. The flare eases toward the cursor.
+  flare.x = lerp(flare.x, mouseX / width || 0.5, 0.06);
+  flare.y = lerp(flare.y, mouseY / height || 0.3, 0.06);
+
+  // 3. One dot per grid cell, sized by the field.
+  const sp = params.spacing;
+  const cols = ceil(width / sp) + 1, rows = ceil(height / sp) + 1;
+  const ox = (width - (cols - 1) * sp) / 2, oy = (height - (rows - 1) * sp) / 2;
+  const maxR = sp * 0.5 * params.dotSize, baseR = max(0.45, sp * 0.06);
+  fill(colors.ink);
+  for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < cols; i++) {
+      const x = ox + i * sp, y = oy + j * sp;
+      const px = x / height, py = y / height;
+      let v = 0;
+      for (const g of segs) {
+        const d2 = min(segDist2(px, py, g[0], g[1], g[2], g[3]), segDist2(px, py, g[2], g[3], g[4], g[5]));
+        v += exp(-d2 / (g[6] * g[6]));
+      }
+      let f = smoothstep(0.06, 1.25, v);
+      const dx = px - flare.x * asp, dy = py - flare.y;
+      f += exp(-(dx * dx + dy * dy) / 0.006) * 0.45 * (0.35 + f); // swell near the flare
+      const r = baseR + (maxR - baseR) * min(1.3, f);
+      if (params.shape === 'Square') rect(x - r * 0.88, y - r * 0.88, r * 1.76, r * 1.76);
+      else if (params.shape === 'Plus') { const w = max(0.6, r * 0.55); rect(x - r, y - w / 2, r * 2, w); rect(x - w / 2, y - r, w, r * 2); }
+      else circle(x, y, r * 2);
+    }
+  }
+
+  // 4. Flare: a vertical light beam and a soft halo, in the palette's colours.
+  if (params.flares > 0) drawFlare(flare.x * width, flare.y * height, params.flare);
+}
+
+function drawFlare(x, y, I) {
+  const c = drawingContext;
+  c.save(); // raw canvas gradients: restore afterwards so p5's own fill() keeps working
+  const beam = c.createLinearGradient(x - width * 0.035, 0, x + width * 0.035, 0);
+  beam.addColorStop(0, withAlpha(colors.c1, 0));
+  beam.addColorStop(0.5, withAlpha(colors.c1, 0.55 * min(1, I)));
+  beam.addColorStop(1, withAlpha(colors.c1, 0));
+  c.fillStyle = beam;
+  c.fillRect(x - width * 0.035, 0, width * 0.07, height);
+  const R = width * 0.16 * I;
+  const halo = c.createRadialGradient(x, y, 0, x, y, R);
+  halo.addColorStop(0, withAlpha(colors.c4, 0.9 * min(1, I)));
+  halo.addColorStop(0.15, withAlpha(colors.c1, 0.6 * min(1, I)));
+  halo.addColorStop(1, withAlpha(colors.c1, 0));
+  c.fillStyle = halo;
+  c.fillRect(x - R, y - R, R * 2, R * 2);
+  c.restore();
+}
+
+const withAlpha = (hex, a) => { const c = color(hex); c.setAlpha(a * 255); return c.toString(); };
+const smoothstep = (a, b, x) => { const t = constrain((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+function windowResized() { resizeCanvas(windowWidth, windowHeight); }
+`;
+
