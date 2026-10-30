@@ -1,6 +1,7 @@
 // Aura Gradient: a domain-warped noise gradient, soft and airy (refs 5, 6, 8).
 // The cursor swirls the colour field; holding the mouse down intensifies it.
 import { createFullscreenShader } from '../../shared/fullscreenShader.js';
+import { shaderSketch } from '../../shared/codegen.js';
 
 const params = {
   scale:    { value: 0.7, min: 0.2, max: 4, step: 0.01, label: 'Scale' },
@@ -54,4 +55,5 @@ export default {
   create(ctx) {
     return createFullscreenShader(ctx, params, fragment);
   },
+  code: (values, colors, seed) => shaderSketch({ id: 'aura', name: 'Aura Gradient', params, values, colors, seed, fragment }),
 };

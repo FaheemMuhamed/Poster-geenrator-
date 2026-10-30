@@ -11,10 +11,15 @@ import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 // The Explore universe is only downloaded when first opened.
 const Explore = lazy(() => import('./explore/Explore.jsx'));
+const About = lazy(() => import('./about/About.jsx'));
 
 // Embed mode (iframe / downloaded HTML): just the poster.
 const EMBED = new URLSearchParams(location.search).has('embed') || !!window.POSTER_EMBED;
+// Embedded: no page background, so only the visual shows (no slivers or corners around it).
+if (EMBED) document.documentElement.classList.add('embed');
 const EXPLORE_HASH = '#/explore';
+const ABOUT_HASH = '#/about';
+const viewOfHash = (h) => (h === EXPLORE_HASH ? 'explore' : h === ABOUT_HASH ? 'about' : 'create');
 
 export default function App() {
   const viewportRef = useRef(null);
@@ -23,7 +28,7 @@ export default function App() {
   const typeRef = useRef(null);
   const ambientRef = useRef(null);
   const [engine, setEngine] = useState(null);
-  const [view, setView] = useState(() => (!EMBED && location.hash === EXPLORE_HASH ? 'explore' : 'create'));
+  const [view, setView] = useState(() => (EMBED ? 'create' : viewOfHash(location.hash)));
   // The example last opened from Explore, so browser Back returns to it.
   const [lastOpened, setLastOpened] = useState(null);
   const engineRef = useRef(null);
@@ -46,13 +51,15 @@ export default function App() {
   const go = useCallback((v) => {
     const e = engineRef.current;
     if (v === 'explore') history.pushState(null, '', EXPLORE_HASH);
+    else if (v === 'about') history.pushState(null, '', ABOUT_HASH);
     else if (e) history.pushState(null, '', '#' + e.toHash());
     setView(v);
   }, []);
 
   useEffect(() => {
     const onPop = () => {
-      if (location.hash === EXPLORE_HASH) return setView('explore');
+      const v = viewOfHash(location.hash);
+      if (v !== 'create') return setView(v);
       setView('create');
       // Going back to an earlier poster: load the settings stored in that address.
       const e = engineRef.current;
@@ -73,6 +80,7 @@ export default function App() {
       else if (e.key === ' ') { engine.togglePause(); e.preventDefault(); }
       else if (e.key === 'ArrowRight') engine.stepMode(1);
       else if (e.key === 'ArrowLeft') engine.stepMode(-1);
+      else if (k === 'x') window.dispatchEvent(new Event('morva:surprise'));
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -82,7 +90,7 @@ export default function App() {
     <div ref={viewportRef} className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center">
       <div ref={stageRef} id="stage" className={EMBED ? 'relative' : 'relative bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_20px_60px_-20px_rgba(0,0,0,0.25)]'}>
         {!EMBED && <canvas ref={ambientRef} id="ambient" aria-hidden="true" />}
-        <div ref={sceneRef} className="absolute inset-0 cursor-crosshair touch-none" />
+        <div ref={sceneRef} id="scene" className="absolute inset-0 cursor-crosshair touch-none" />
         <canvas ref={typeRef} id="type-layer" />
       </div>
     </div>
@@ -98,15 +106,26 @@ export default function App() {
         {withEngine(<TopBar view={view} onView={(v) => { if (v === 'explore') setLastOpened(null); go(v); }} />)}
         <div className="relative flex min-h-0 flex-1 flex-col md:flex-row">
           <ErrorBoundary>{withEngine(<ModeList />)}</ErrorBoundary>
-          <main className="relative isolate flex min-h-[55vh] min-w-0 flex-1 overflow-hidden bg-neutral-100">{stage}</main>
+          <main className="relative isolate flex min-h-[55vh] min-w-0 flex-1 overflow-hidden bg-stage">{stage}</main>
           <ErrorBoundary>{withEngine(<Inspector />)}</ErrorBoundary>
 
-          {view === 'explore' && engine && (
-            <div className="fixed inset-x-0 bottom-0 top-12 z-20 bg-[#eceef0]">
+          {view === 'about' && engine && (
+            <div className="fixed inset-x-0 bottom-0 top-12 z-20">
               <ErrorBoundary>
-                <Suspense fallback={<div className="grid h-full place-items-center text-[13px] text-neutral-500">Loading the universe…</div>}>
+                <Suspense fallback={null}>
+                  <About onOpenMode={(id) => { engine.setMode(id); go('create'); }} onExplore={() => go('explore')} />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+          )}
+
+          {view === 'explore' && engine && (
+            <div className="fixed inset-x-0 bottom-0 top-12 z-20 bg-stage">
+              <ErrorBoundary>
+                <Suspense fallback={<div className="grid h-full place-items-center text-[13px] text-muted-foreground">Loading the universe…</div>}>
                   <Explore
                     initialSelected={lastOpened}
+                    onOpenMode={(id) => { engine.setMode(id); go('create'); }}
                     onOpen={(example) => { setLastOpened(example.id); engine.load(example.settings, { exampleId: example.id }); go('create'); }}
                   />
                 </Suspense>

@@ -15,7 +15,7 @@ function download(blob, name) {
 }
 
 function stamp(state) {
-  return `poster-${state.mode}-${state.seed}`;
+  return `morva-${state.mode}-${state.seed}`;
 }
 
 // Draws the scene canvas + text layer into one 2D canvas.
@@ -78,7 +78,7 @@ export function siteUrl() {
 // `hash` is the poster's link code (engine.toHash()).
 export function embedCode(hash, aspect) {
   const src = `${siteUrl()}?embed=1#${hash}`;
-  return `<iframe src="${src}" title="Poster" loading="lazy" style="width:100%;aspect-ratio:${aspect.toFixed(4)};border:0;display:block" allow="fullscreen"></iframe>`;
+  return `<iframe src="${src}" title="Morva visual" loading="lazy" style="width:100%;aspect-ratio:${aspect.toFixed(4)};border:0;display:block" allow="fullscreen"></iframe>`;
 }
 
 // A single .html file with the current settings baked in. It loads the poster code
@@ -90,7 +90,7 @@ export async function downloadStandaloneHTML(state) {
   html = html
     .replace('<head>', `<head>\n  <base href="${base}" />`)
     .replace('</head>', `  <script>window.POSTER_STATE = ${settings}; window.POSTER_EMBED = true;</script>\n</head>`)
-    .replace(/<title>.*<\/title>/, `<title>${escapeHtml(state.text.lines.title || 'Poster')}</title>`);
+    .replace(/<title>.*<\/title>/, `<title>${escapeHtml(state.text.lines.title || 'Morva')}</title>`);
   download(new Blob([html], { type: 'text/html' }), `${stamp(state)}.html`);
 }
 

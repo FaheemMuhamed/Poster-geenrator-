@@ -1,4 +1,4 @@
-import { Dices, Pause, Play, Sun, SunDim, WandSparkles } from 'lucide-react';
+import { Dices, Lamp, Moon, Pause, Play, Sun } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import SupportDialog from './SupportDialog.jsx';
 import FeedbackDialog from './FeedbackDialog.jsx';
@@ -9,6 +9,9 @@ import { Separator } from '@/components/ui/separator';
 import { FORMATS, MODES } from '../../js/engine.js';
 import { useEngine } from '../useEngine.js';
 import ExportMenu from './ExportMenu.jsx';
+import Logo from './Logo.jsx';
+import SurpriseButton from './SurpriseButton.jsx';
+import { setTheme, useTheme } from '../useTheme.js';
 
 function IconButton({ label, shortcut, onClick, children }) {
   return (
@@ -24,29 +27,30 @@ function IconButton({ label, shortcut, onClick, children }) {
 export default function TopBar({ view, onView }) {
   const engine = useEngine();
   const { state } = engine;
+  const theme = useTheme();
   return (
-    <header className="flex h-12 shrink-0 items-center gap-2 border-b border-neutral-200 bg-white px-3">
-      <div className="flex items-center gap-2 pl-1 pr-2">
-        <div className="size-5 rounded-full bg-[conic-gradient(from_90deg,#ff3d4e,#ff9ccf,#20306b,#ffd43b,#ff3d4e)]" />
-        <span className="hidden text-[13px] font-semibold tracking-tight lg:inline">Poster Generator</span>
-      </div>
+    <header className="flex min-h-12 shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border-b border-border bg-background px-3 py-1.5 md:h-12 md:flex-nowrap md:py-0">
+      <a href="#/about" onClick={(e) => { e.preventDefault(); onView('about'); }} className="flex items-center rounded-[3px] pl-1 pr-2 focus-visible:outline-2 focus-visible:outline-foreground" aria-label="Morva: about">
+        <Logo className="[&>span:last-child]:hidden sm:[&>span:last-child]:inline" />
+      </a>
 
-      <ToggleGroup type="single" value={view} onValueChange={(v) => v && onView(v)} className="rounded-md bg-neutral-100 p-0.5">
-        <ToggleGroupItem value="create" className="h-7 rounded-[5px] px-3 text-[12px] data-[state=on]:bg-white data-[state=on]:shadow-sm">Create</ToggleGroupItem>
-        <ToggleGroupItem value="explore" className="h-7 rounded-[5px] px-3 text-[12px] data-[state=on]:bg-white data-[state=on]:shadow-sm">Explore</ToggleGroupItem>
+      <ToggleGroup type="single" value={view} onValueChange={(v) => v && onView(v)} className="rounded-md bg-muted p-0.5">
+        <ToggleGroupItem value="create" className="h-7 rounded-[5px] px-3 text-[12px] data-[state=on]:bg-card dark:data-[state=on]:bg-accent data-[state=on]:shadow-sm">Create</ToggleGroupItem>
+        <ToggleGroupItem value="explore" className="h-7 rounded-[5px] px-3 text-[12px] data-[state=on]:bg-card dark:data-[state=on]:bg-accent data-[state=on]:shadow-sm">Explore</ToggleGroupItem>
       </ToggleGroup>
 
       {/* On phones the mode list is hidden, so offer it here. */}
       {view === 'create' && <Select value={state.mode} onValueChange={(v) => engine.setMode(v)}>
-        <SelectTrigger size="sm" className="h-8 w-[160px] text-[12px] md:hidden"><SelectValue /></SelectTrigger>
+        <SelectTrigger size="sm" className="h-8 w-[130px] shrink-0 text-[12px] md:hidden"><SelectValue /></SelectTrigger>
         <SelectContent>
-          {MODES.map((m) => <SelectItem key={m.id} value={m.id} className="text-[12px]">{m.group} · {m.name}</SelectItem>)}
+          {MODES.map((m) => <SelectItem key={m.id} value={m.id} className="text-[12px]">{m.category} · {m.name}</SelectItem>)}
         </SelectContent>
       </Select>}
 
-      <div className={view === 'create' ? 'mx-auto flex items-center gap-1' : 'invisible mx-auto flex items-center gap-1'}>
+      {/* Phones: these tools wrap onto a second row. */}
+      <div className={view === 'create' ? 'flex items-center gap-1 md:mx-auto' : 'hidden items-center gap-1 md:invisible md:mx-auto md:flex'}>
         <Select value={state.format} onValueChange={(v) => engine.setFormat(v)}>
-          <SelectTrigger size="sm" className="h-8 w-[170px] border-none text-[12px] shadow-none hover:bg-neutral-100"><SelectValue /></SelectTrigger>
+          <SelectTrigger size="sm" className="h-8 w-[118px] shrink-0 border-none lg:w-[170px] text-[12px] shadow-none hover:bg-muted"><SelectValue /></SelectTrigger>
           <SelectContent>
             {Object.keys(FORMATS).map((f) => <SelectItem key={f} value={f} className="text-[12px]">{f}</SelectItem>)}
           </SelectContent>
@@ -56,13 +60,16 @@ export default function TopBar({ view, onView }) {
           {state.motion.paused ? <Play /> : <Pause />}
         </IconButton>
         <IconButton label="New variation" shortcut="R" onClick={() => engine.randomise()}><Dices /></IconButton>
-        <IconButton label="Surprise me: new settings + colours" onClick={() => engine.surprise()}><WandSparkles /></IconButton>
         <IconButton label={state.ui.ambient ? 'Turn off ambient glow' : 'Turn on ambient glow'} onClick={() => engine.toggleAmbient()}>
-          {state.ui.ambient ? <Sun /> : <SunDim className="opacity-50" />}
+          <Lamp className={state.ui.ambient ? '' : 'opacity-40'} />
         </IconButton>
+        <span className="ml-1.5"><SurpriseButton /></span>
       </div>
 
       <div className="hidden items-center md:flex">
+        <IconButton label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+          {theme === 'dark' ? <Sun /> : <Moon />}
+        </IconButton>
         <FeedbackDialog />
         <SupportDialog />
       </div>

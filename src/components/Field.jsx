@@ -18,8 +18,8 @@ export function SliderField({ label, value, min, max, step, onChange }) {
   return (
     <div className="space-y-2.5 py-1.5">
       <div className="flex items-center justify-between">
-        <Label className="text-[12px] font-normal text-neutral-600">{label}</Label>
-        <span className="font-mono text-[11px] tabular-nums text-neutral-400">{fmt(value, step)}</span>
+        <Label className="text-[12px] font-normal text-muted-foreground">{label}</Label>
+        <span className="font-mono text-[11px] tabular-nums text-muted-foreground/70">{fmt(value, step)}</span>
       </div>
       <Slider value={[value]} min={min} max={max} step={step ?? (max - min) / 100} onValueChange={([v]) => onChange(v)} />
     </div>
@@ -29,7 +29,7 @@ export function SliderField({ label, value, min, max, step, onChange }) {
 export function SwitchField({ label, value, onChange }) {
   return (
     <label className="flex cursor-pointer items-center justify-between py-1.5">
-      <span className="text-[12px] text-neutral-600">{label}</span>
+      <span className="text-[12px] text-muted-foreground">{label}</span>
       <Switch checked={!!value} onCheckedChange={onChange} />
     </label>
   );
@@ -40,7 +40,7 @@ export function SelectField({ label, value, options, onChange }) {
   const items = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
   return (
     <div className="flex items-center justify-between gap-3 py-1">
-      <Label className="shrink-0 text-[12px] font-normal text-neutral-600">{label}</Label>
+      <Label className="shrink-0 text-[12px] font-normal text-muted-foreground">{label}</Label>
       <Select value={String(value)} onValueChange={(v) => onChange(items.find((i) => String(i.value) === v)?.value ?? v)}>
         <SelectTrigger size="sm" className="h-8 w-[150px] text-[12px]"><SelectValue /></SelectTrigger>
         <SelectContent>
@@ -54,7 +54,7 @@ export function SelectField({ label, value, options, onChange }) {
 export function TextField({ label, value, onChange, placeholder }) {
   return (
     <div className="space-y-1.5 py-1">
-      {label && <Label className="text-[12px] font-normal text-neutral-600">{label}</Label>}
+      {label && <Label className="text-[12px] font-normal text-muted-foreground">{label}</Label>}
       <Input value={value ?? ''} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className="h-8 text-[12px]" />
     </div>
   );
@@ -73,7 +73,7 @@ export function ParamField({ def, value, onChange }) {
 export function Section({ title, children, defaultOpen = false, collapsible = true, aside }) {
   const [open, setOpen] = useState(defaultOpen || !collapsible);
   return (
-    <section className="border-b border-neutral-100 px-4 py-3 last:border-b-0">
+    <section className="border-b border-border/60 px-4 py-3 last:border-b-0">
       <div className="flex items-center">
         <button
           type="button"
@@ -81,8 +81,8 @@ export function Section({ title, children, defaultOpen = false, collapsible = tr
           onClick={() => setOpen(!open)}
           className={cn('flex flex-1 items-center gap-1.5 text-left', collapsible ? 'cursor-pointer' : 'cursor-default')}
         >
-          {collapsible && <ChevronRight className={cn('size-3.5 text-neutral-400 transition-transform', open && 'rotate-90')} />}
-          <span className="text-[12px] font-medium text-neutral-800">{title}</span>
+          {collapsible && <ChevronRight className={cn('size-3.5 text-muted-foreground/70 transition-transform', open && 'rotate-90')} />}
+          <span className="text-[12px] font-medium text-foreground">{title}</span>
         </button>
         {aside && <span className="ml-auto">{aside}</span>}
       </div>

@@ -22,9 +22,9 @@ function Thumb({ layout, text, colors, aspect, active, onClick }) {
       <canvas
         ref={ref}
         style={{ width: W, height: H }}
-        className={cn('rounded-[3px] ring-1 transition', active ? 'ring-2 ring-neutral-900 ring-offset-2' : 'ring-neutral-200 group-hover:ring-neutral-400')}
+        className={cn('rounded-[3px] ring-1 transition', active ? 'ring-2 ring-foreground ring-offset-2' : 'ring-border group-hover:ring-foreground/40')}
       />
-      <span className={cn('w-full truncate text-center text-[10.5px]', active ? 'font-medium text-neutral-900' : 'text-neutral-500')}>{layout}</span>
+      <span className={cn('w-full truncate text-center text-[10.5px]', active ? 'font-medium text-foreground' : 'text-muted-foreground')}>{layout}</span>
     </button>
   );
 }
@@ -38,7 +38,7 @@ export default function LayoutPicker({ state, onPick }) {
     <div className="space-y-4">
       {LAYOUT_GROUPS.map((g) => (
         <div key={g.name}>
-          <div className="mb-2 text-[11px] text-neutral-400">{g.name}</div>
+          <div className="mb-2 text-[11px] text-muted-foreground/70">{g.name}</div>
           <div className="grid grid-cols-3 gap-x-2 gap-y-3">
             {Object.keys(g.layouts).map((l) => (
               <Thumb key={l} layout={l} text={text} colors={colors} aspect={aspect} active={state.text.layout === l} onClick={() => onPick(l)} />

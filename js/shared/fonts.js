@@ -1,4 +1,4 @@
-// Font registry for the poster generator.
+// Font registry for Morva.
 //
 // source: 'self'   → @font-face rules in src/fonts.css, files in public/fonts/<slug>/
 //                     (every self-hosted family is SIL OFL 1.1 — see public/fonts/CREDITS.md)

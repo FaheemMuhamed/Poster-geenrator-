@@ -55,7 +55,8 @@ const FRAG = /* glsl */ `
 const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const hexToVec = (hex) => new THREE.Color(hex);
 
-export function createUniverse(container, data, atlasUrl, { onHover, onSelect, reducedMotion }) {
+export function createUniverse(container, data, atlasUrl, opts) {
+  const { onHover, onSelect, reducedMotion } = opts;
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -63,7 +64,7 @@ export function createUniverse(container, data, atlasUrl, { onHover, onSelect, r
   renderer.domElement.style.display = 'block';
   renderer.domElement.style.touchAction = 'none';
 
-  const FOG = '#eceef0';
+  const FOG = opts.fog || '#e9e9e6';
   renderer.setClearColor(FOG, 0); // transparent: the CSS glow behind shows through
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
@@ -269,6 +270,8 @@ export function createUniverse(container, data, atlasUrl, { onHover, onSelect, r
 
   return {
     setFilter(fn) { filter = fn || (() => true); },
+    // Posters fade into the page colour, so it follows the light/dark theme.
+    setFog(hex) { uniforms.uFog.value = hexToVec(hex); },
     select,
     screenOf,
     get hovered() { return hovered; },
