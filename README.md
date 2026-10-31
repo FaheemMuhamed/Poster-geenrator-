@@ -2,7 +2,7 @@
 
 **An archive of generative visuals you can play with.** Morva is a library of live p5.js, three.js and GLSL visuals for designers and creative developers. Shape each one with plain controls, export it as an image, video or embed, and copy standalone code for it.
 
-Brand guide: [docs/BRAND.md](docs/BRAND.md). Built with [p5.js](https://p5js.org), [three.js](https://threejs.org) and a [shadcn/ui](https://ui.shadcn.com) interface (React + Tailwind, bundled with Vite).
+Live at **https://morva-studio.com**. Brand guide: [docs/BRAND.md](docs/BRAND.md). Built with [p5.js](https://p5js.org), [three.js](https://threejs.org) and a [shadcn/ui](https://ui.shadcn.com) interface (React + Tailwind, bundled with Vite).
 
 ## Using it
 

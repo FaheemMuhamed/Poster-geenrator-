@@ -34,7 +34,7 @@ function captureEndpoint() {
 }
 
 export default defineConfig({
-  // Relative paths so the site works at https://<user>.github.io/<repo>/
+  // Relative paths so the site works at https://morva-studio.com/ and at https://<user>.github.io/<repo>/
   base: './',
   plugins: [react(), tailwindcss(), captureEndpoint()],
   // p5 and three are big libraries; their size is expected.
