@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Code2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MODES } from '../../js/modes/index.js';
 import { FONTS_LIBRARY } from '../../js/shared/fonts.js';
-import { CONFIG } from '../config.js';
 import DitherLogo from './DitherLogo.jsx';
 
 // The hero is a live entry, running in embed mode (no interface, no text) so it can be played with.
@@ -83,18 +82,13 @@ export default function About({ onOpenMode, onExplore }) {
           <div className="space-y-2">
             <h2 className="text-[20px] leading-tight font-semibold tracking-tight">For developers</h2>
             <p className="max-w-[52ch] text-[13px] leading-relaxed text-muted-foreground">
-              Entries have a Code tab with a standalone HTML file and your settings built in. It runs anywhere, or opens in CodePen.
+              Every entry has a Code button that opens a terminal with runnable code and your settings built in. Copy it, download it, or open it in CodePen.
             </p>
-            <div className="pt-1">
-              <Button variant="outline" size="sm" asChild className="gap-1.5">
-                <a href={CONFIG.REPO_URL} target="_blank" rel="noreferrer"><Code2 className="size-3.5" /> Source on GitHub</a>
-              </Button>
-            </div>
           </div>
           <div className="space-y-2">
             <h2 className="text-[20px] leading-tight font-semibold tracking-tight">Credits</h2>
             <p className="max-w-[52ch] text-[13px] leading-relaxed text-muted-foreground">
-              Made by Faheem Muhamed. Built on p5.js and three.js. The type library holds {FONTS_LIBRARY.length} open-licence families, {selfHosted} of them from independent foundries: Collletttivo, Open Foundry, uncut.wtf and The League of Moveable Type. Morva is free; the Support button keeps it growing.
+              Built on p5.js and three.js. The type library holds {FONTS_LIBRARY.length} open-licence families, {selfHosted} of them from independent foundries: Collletttivo, Open Foundry, uncut.wtf and The League of Moveable Type. Morva is free; the Support button keeps it growing.
             </p>
           </div>
         </section>
