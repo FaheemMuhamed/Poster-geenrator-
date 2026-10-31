@@ -1,15 +1,15 @@
 // Dev-only capture tool (capture.html). Drives the real poster engine to produce:
 //   public/previews/<mode>.mp4 + .jpg   short clips for the sidebar hover cards
-//   public/examples/e-<n>.webp           example posters (512 px) for Explore
+//   public/examples/e-<n>.webp           example posters (720 px long side) for Explore
 //   public/examples/atlas.webp           all examples packed into one texture
 //   public/examples/examples.json        each example's full settings + atlas cell
 // Keep this tab visible while it runs: hidden tabs pause animation.
 import './fonts.css';
-import { GOOGLE_FONTS_CSS, FONTS_LIBRARY } from '../js/shared/fonts.js';
+import { GOOGLE_FONTS_CSS } from '../js/shared/fonts.js';
 import { createEngine, DEFAULT_STATE } from '../js/engine.js';
 import { MODES, loadMode } from '../js/modes/index.js';
 import { PALETTES } from '../js/shared/palettes.js';
-import { LAYOUTS, loadFont } from '../js/shared/typeLayer.js';
+import { loadFont } from '../js/shared/typeLayer.js';
 import { composite, settingsOf } from '../js/shared/export.js';
 import { makeRandom } from '../js/shared/random.js';
 
@@ -18,10 +18,6 @@ document.head.appendChild(Object.assign(document.createElement('link'), { rel: '
 const $ = (id) => document.getElementById(id);
 const log = (m) => { $('log').textContent += m + '\n'; $('log').scrollTop = 1e9; };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-// Atlas cell size; examples are always A-series portrait so every cell matches.
-const CELL_W = 256, CELL_H = 362, ATLAS_COLS = 16;
-const COUNT = 120;
 
 const viewport = $('viewport');
 function setViewport(w, h) { viewport.style.width = w + 'px'; viewport.style.height = h + 'px'; }
@@ -98,6 +94,8 @@ async function recordPreviews() {
 }
 
 // ---------- Example posters ----------
+// Curated rather than random: each effect is shown through its own designed looks,
+// in a mix of frame shapes, with a type pairing and a finish chosen to suit it.
 const COPY = [
   ['Night Signals', 'Audiovisual live set', '14.02.27', 'Halle 3', 'Doors 21:00'],
   ['Soft Machines', 'Group exhibition', '03.05 → 28.05', 'Kunsthalle Ost', 'Free entry'],
@@ -108,70 +106,131 @@ const COPY = [
   ['Slow Light', 'Photography', '12 → 30 Nov', 'Gallery Mira', 'Opening 6pm'],
   ['Noise Garden', 'Experimental music', '22.04.27', 'Botanic Hall', 'Tickets at the door'],
   ['Type Club', 'Lettering meetup', 'Monthly', 'Studio Kern', 'Bring a pen'],
-  ['Wavelength', 'Festival of sound', '06–08 Jul', 'Riverside', '3 days · 40 acts'],
+  ['Wavelength', 'Festival of sound', '06–08 Jul', 'Riverside', '3 days, 40 acts'],
   ['Loose Ends', 'Graduation show', '15.06.27', 'Main Building', 'Class of 2027'],
   ['Common Ground', 'Panel discussion', 'Wed 18:00', 'Library Hall', 'Open to all'],
   ['Prism', 'Light installation', 'Dusk till late', 'Harbour Front', 'Winter edition'],
   ['Hidden Rooms', 'Architecture tour', 'Sundays', 'Old Town', 'Meet at the clock'],
   ['Echo Chamber', 'Club night', '31.12.26', 'Basement', 'Until sunrise'],
   ['Material Matters', 'Craft biennale', '01 → 20 Oct', 'Design Museum', 'Workshops daily'],
+  ['Undertow', 'Dance performance', '18.03.27', 'Studio Theatre', '8pm'],
+  ['Small Hours', 'Late night radio', 'Fridays 02:00', 'FM 98.4', 'Live from the roof'],
+  ['Terra', 'Ceramics fair', '24–26 Apr', 'Old Market', 'Makers welcome'],
+  ['Quiet Weather', 'Poetry evening', 'Sun 17:00', 'Reading Room', 'Tea served'],
+  ['Signal / Noise', 'Media art symposium', '11.11.26', 'Arts Lab', 'Day pass'],
+  ['Bloom', 'Spring market', '05.04.27', 'Garden Court', 'From 9am'],
+  ['Long Exposure', 'Night photo walk', 'Full moon', 'North Pier', 'Bring a tripod'],
+  ['Grain', 'Analogue film club', 'Tuesdays', 'Darkroom 2', 'Members free'],
 ];
-const SERIOUS = FONTS_LIBRARY.filter((f) => ['Sans', 'Serif', 'Display', 'Experimental'].includes(f.category)).map((f) => f.name);
-const BODY = FONTS_LIBRARY.filter((f) => ['Sans', 'Mono'].includes(f.category)).map((f) => f.name);
-const FX_LOOKS = [{}, { grain: 0.15 }, { soft: 0.5, grain: 0.2 }, { halftone: true, halftoneSize: 6 }, { dither: true, ditherLevels: 3, grain: 0.2 }, { bloom: 0.8, grain: 0.12 }];
+
+// Title face, weight, body face, tracking. Pairings, not random draws.
+const TYPE = [
+  ['Inter Tight', 700, 'Inter', -20], ['Instrument Serif', 400, 'Instrument Sans', -10], ['League Gothic', 400, 'Space Mono', 10],
+  ['Fraunces', 600, 'Hanken Grotesk', -20], ['Syne', 800, 'Space Grotesk', -30], ['Unbounded', 600, 'JetBrains Mono', -20],
+  ['Newsreader', 400, 'Inter', -10], ['Big Shoulders Display', 800, 'Martian Mono', 0], ['Bricolage Grotesque', 700, 'Bricolage Grotesque', -30],
+  ['Gloock', 400, 'Familjen Grotesk', -10], ['Archivo', 800, 'Archivo', -30], ['DM Serif Display', 400, 'Overused Grotesk', -10],
+  ['Space Grotesk', 700, 'Space Mono', -30], ['Mattone', 700, 'Inter', 0], ['Darker Grotesque', 800, 'Darker Grotesque', -20],
+  ['Young Serif', 400, 'Apfel Grotezk', 0], ['Familjen Grotesk', 700, 'League Mono', -20], ['Bagnard', 400, 'Instrument Sans', 0],
+];
+
+// Frame shapes, weighted toward portrait print sizes.
+const RATIOS = [
+  ...Array(5).fill({ format: 'A-series (portrait)' }), ...Array(4).fill({ format: '4:5 (Instagram)' }),
+  ...Array(3).fill({ format: '9:16 (Story)' }), ...Array(3).fill({ format: '1:1 (Square)' }), ...Array(2).fill({ format: '16:9 (Landscape)' }),
+  { format: 'Custom', frame: { w: 2, h: 3 } }, { format: 'Custom', frame: { w: 3, h: 4 } }, { format: 'Custom', frame: { w: 3, h: 2 } },
+];
+const PORTRAIT = ['12-field', '20-field', '32-field', 'Swiss 6-column', 'Stepped', 'Van de Graaf', 'Golden canon', 'Asymmetric',
+  'Corners', 'Index strip', 'Big type', 'Vertical title', 'Split', 'Stacked', 'Centered', 'Vertical edge'];
+const WIDE = ['8-field', 'Corners', 'Index strip', 'Big type', 'Split', 'Stacked', 'Centered', 'Two-column', '3-column'];
+
+// Finishes. Only one in ten posters is left with the plain default grain.
+const FINISH = {
+  plain:    { grain: 0.08 },
+  film:     { grain: 0.28, vignette: 0.35 },
+  soft:     { soft: 0.6, grain: 0.18, vignette: 0.2 },
+  glow:     { bloom: 0.9, grain: 0.14 },
+  bloomy:   { bloom: 1.5, soft: 0.3, grain: 0.1, vignette: 0.3 },
+  halftone: { halftone: true, halftoneSize: 7, grain: 0.06 },
+  coarse:   { halftone: true, halftoneSize: 11 },
+  dither:   { dither: true, ditherLevels: 3, grain: 0.1 },
+  chroma:   { chroma: 1.1, grain: 0.18, vignette: 0.25 },
+  glitch:   { rgbShift: 0.7, chroma: 0.5, grain: 0.22 },
+  pixel:    { pixelate: 6, grain: 0.1 },
+};
+const DARK = ['Night Petal'];
+const LIGHT_FINISHES = ['film', 'film', 'soft', 'halftone', 'coarse', 'dither', 'chroma', 'glitch', 'pixel', 'glow'];
+const DARK_FINISHES = ['glow', 'glow', 'bloomy', 'bloomy', 'chroma', 'film', 'soft', 'glitch'];
+// Effects that already are a print screen don't get another one on top.
+const SCREENED = new Set(['dither', 'halftone', 'cloudscreen', 'topiary', 'ascii', 'codecolumns']);
+
+const COUNT = 120;
 
 async function makeExample(i, r) {
   const meta = MODES[i % MODES.length];
   const def = await loadMode(meta.id);
-  // Nudge the essentials away from defaults, but stay in the middle of each range.
-  const params = {};
-  for (const [k, p] of Object.entries(def.params)) {
-    if (p.rebuild && /count|grid|quality|tiles|rows|lanes/i.test(k)) continue;
-    if (typeof p.value === 'number' && p.min !== undefined && r() < 0.5) {
-      const v = p.min + (p.max - p.min) * r.range(0.25, 0.75);
-      params[k] = p.step ? Math.round(v / p.step) * p.step : v;
-    } else if (p.options && r() < 0.3) params[k] = r.pick(p.options);
-  }
-  const palette = r.pick(Object.keys(PALETTES));
+  // Rounds 1–3 use the effect's own designed looks; the last round shows its defaults.
+  const looks = Object.values(def.presets || {});
+  const look = looks[Math.floor(i / MODES.length)] || {};
+  const params = { ...look };
+
+  const palette = i % 6 === 0 ? 'Night Petal' : r.pick(Object.keys(PALETTES));
+  const dark = DARK.includes(palette);
+  let finish = i % 10 === 9 ? 'plain' : r.pick(dark ? DARK_FINISHES : LIGHT_FINISHES);
+  if (SCREENED.has(meta.id) && /halftone|coarse|dither|pixel/.test(finish)) finish = dark ? 'glow' : 'film';
+
+  const ratio = r.pick(RATIOS);
+  const wide = ratio.format === '16:9 (Landscape)' || ratio.frame?.w > ratio.frame?.h;
   const [title, subtitle, date, venue, footer] = r.pick(COPY);
+  const [font, weight, bodyFont, tracking] = r.pick(TYPE);
+  const sparse = r() < 0.35; // a quieter poster: title, date and venue only
   return {
-    mode: meta.id, seed: r.int(1, 99999), format: 'A-series (portrait)', palette, colors: { ...PALETTES[palette] },
+    mode: meta.id, seed: r.int(1, 99999), format: ratio.format, ...(ratio.frame && { frame: ratio.frame }),
+    palette, colors: { ...PALETTES[palette] },
     ui: { ambient: false },
-    fx: { ...DEFAULT_STATE.fx, ...r.pick(FX_LOOKS) },
+    fx: { ...DEFAULT_STATE.fx, grain: 0, ...FINISH[finish] },
     text: {
-      ...DEFAULT_STATE.text, lines: { title, subtitle, date, venue, footer },
-      font: r.pick(SERIOUS), bodyFont: r.pick(BODY), weight: r.pick([400, 600, 700, 900]),
-      layout: r.pick(LAYOUTS), textCase: r.pick(['As typed', 'As typed', 'UPPERCASE']),
-      size: r.range(0.85, 1.25), tracking: r.pick([0, 0, -20, 40]),
+      ...DEFAULT_STATE.text,
+      lines: sparse ? { title, subtitle: '', date, venue, footer: '' } : { title, subtitle, date, venue, footer },
+      font, weight, bodyFont, bodyWeight: 400, tracking,
+      layout: r.pick(wide ? WIDE : PORTRAIT),
+      textCase: r() < 0.25 ? 'UPPERCASE' : 'As typed',
+      size: r.range(0.9, 1.2),
+      background: r() < 0.15 ? r.pick(['Block', 'Pill']) : 'None',
     },
     params: { [meta.id]: params },
+    finish,
   };
 }
 
+// Atlas cells are square; each poster sits centred in its cell at its own shape.
+const CELL = 320, ATLAS_COLS = 12, LONG_SIDE = 720;
+
 async function renderExamples() {
-  setViewport(CELL_W * 2, CELL_H * 2);
-  const r = makeRandom(20261030);
+  setViewport(640, 640);
+  const r = makeRandom(20261031);
   const rows = Math.ceil(COUNT / ATLAS_COLS);
   const atlas = document.createElement('canvas');
-  atlas.width = CELL_W * ATLAS_COLS; atlas.height = CELL_H * rows;
+  atlas.width = CELL * ATLAS_COLS; atlas.height = CELL * rows;
   const actx = atlas.getContext('2d');
   const list = [];
   for (let i = 0; i < COUNT; i++) {
-    const s = await makeExample(i, r);
-    await settle(s, s.mode === 'type3d' || s.mode === 'rd' ? 2200 : 1300);
+    const { finish, ...s } = await makeExample(i, r);
+    await settle(s, s.mode === 'type3d' || s.mode === 'rd' ? 2200 : 1400);
     moveCursor(i * 0.7);
     await sleep(120);
     const w = $('stage').offsetWidth, h = $('stage').offsetHeight;
-    const big = composite(document.createElement('canvas'), sceneCanvas(), w, h, 512 / w, engine.state);
+    const big = composite(document.createElement('canvas'), sceneCanvas(), w, h, LONG_SIDE / Math.max(w, h), engine.state);
     await upload('examples', `e-${i}.webp`, await toBlob(big, 'image/webp', 0.86));
-    actx.drawImage(big, (i % ATLAS_COLS) * CELL_W, Math.floor(i / ATLAS_COLS) * CELL_H, CELL_W, CELL_H);
+    const aspect = w / h;
+    const cw = aspect >= 1 ? CELL : CELL * aspect, ch = aspect >= 1 ? CELL / aspect : CELL;
+    actx.drawImage(big, (i % ATLAS_COLS) * CELL + (CELL - cw) / 2, Math.floor(i / ATLAS_COLS) * CELL + (CELL - ch) / 2, cw, ch);
     const meta = MODES.find((m) => m.id === s.mode);
-    list.push({ id: i, cell: i, mode: s.mode, name: meta.name, group: meta.group, tags: meta.tags,
+    list.push({ id: i, cell: i, aspect: +aspect.toFixed(4), mode: s.mode, name: meta.name, group: meta.group, tags: meta.tags,
       title: s.text.lines.title, palette: s.palette, colors: s.colors, settings: settingsOf(engine.state) });
-    log(`✓ ${i + 1}/${COUNT}  ${meta.name} · ${s.palette} · ${s.text.layout}`);
+    log(`✓ ${i + 1}/${COUNT}  ${meta.name} · ${s.format} · ${s.palette} · ${finish}`);
   }
-  await upload('examples', 'atlas.webp', await toBlob(atlas, 'image/webp', 0.82));
-  const json = { cell: [CELL_W, CELL_H], cols: ATLAS_COLS, rows, examples: list };
+  await upload('examples', 'atlas.webp', await toBlob(atlas, 'image/webp', 0.84));
+  const json = { cell: [CELL, CELL], cols: ATLAS_COLS, rows, examples: list };
   await upload('examples', 'examples.json', new Blob([JSON.stringify(json)], { type: 'application/json' }));
   log('Examples done.');
 }

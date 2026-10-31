@@ -182,7 +182,7 @@ export default function Explore({ onOpen, onOpenMode, initialSelected = null }) 
               </Button>
             </div>
             <div className="min-h-0 flex-1 overflow-auto px-5">
-              <img src={`${BASE}examples/e-${selected.id}.webp`} alt={`${selected.title} poster`} className="w-full rounded-sm shadow-[0_12px_40px_-12px_rgba(0,0,0,0.35)]" />
+              <img src={`${BASE}examples/e-${selected.id}.webp`} alt={`${selected.title} poster`} className="mx-auto max-h-[62vh] w-auto max-w-full rounded-sm shadow-[0_12px_40px_-12px_rgba(0,0,0,0.35)]" />
               <h2 className="mt-5 text-[18px] font-semibold tracking-tight">{selected.title}</h2>
               <p className="mt-1 text-[13px] text-muted-foreground">{selected.name} · {selected.palette} palette</p>
               <div className="mt-3 flex flex-wrap gap-1">

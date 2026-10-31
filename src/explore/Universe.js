@@ -8,14 +8,16 @@ const VERT = /* glsl */ `
   attribute float aTex;
   attribute float aLift;   // 0..1 hover lift (eased in JS)
   attribute float aDim;    // 0..1 filtered out (eased in JS)
+  attribute float aAspect; // poster width / height
   uniform float uPx;
   uniform float uMaxPoint;
   varying float vTex;
   varying float vLift;
   varying float vDim;
   varying float vDepth;
+  varying float vAspect;
   void main() {
-    vTex = aTex; vLift = aLift; vDim = aDim;
+    vTex = aTex; vLift = aLift; vDim = aDim; vAspect = aAspect;
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
     vDepth = -mv.z;
     gl_PointSize = min(aSize * (1.0 + aLift * 0.28) * uPx * (300.0 / -mv.z), uMaxPoint);
@@ -26,21 +28,22 @@ const VERT = /* glsl */ `
 const FRAG = /* glsl */ `
   uniform sampler2D uAtlas;
   uniform vec2 uGrid;        // cols, rows
-  uniform float uAspect;     // poster width / height
   uniform vec3 uFog;
   uniform vec2 uFogRange;    // near, far
   varying float vTex;
   varying float vLift;
   varying float vDim;
   varying float vDepth;
+  varying float vAspect;
   float roundedBox(vec2 p, vec2 b, float r) { vec2 q = abs(p) - b + r; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r; }
   void main() {
-    // The point sprite is square; the poster sits centred inside it at its own aspect.
+    // The point sprite and the atlas cell are both square, with the poster centred in
+    // each at its own aspect, so the sprite coordinate is the cell coordinate.
     vec2 p = gl_PointCoord - 0.5;
-    vec2 box = vec2(0.5 * uAspect, 0.5);
+    vec2 box = vAspect >= 1.0 ? vec2(0.5, 0.5 / vAspect) : vec2(0.5 * vAspect, 0.5);
     float d = roundedBox(p, box, 0.012);
     if (d > 0.0) discard;
-    vec2 uv = vec2(p.x / uAspect + 0.5, p.y + 0.5);
+    vec2 uv = p + 0.5;
     float col = mod(vTex, uGrid.x), row = floor(vTex / uGrid.x);
     vec3 c = texture2D(uAtlas, (vec2(col, row) + uv) / uGrid).rgb;
     // Hairline edge so light posters separate from the fog.
@@ -73,7 +76,7 @@ export function createUniverse(container, data, atlasUrl, opts) {
   const ex = data.examples;
   const n = ex.length;
   const pos = new Float32Array(n * 3), size = new Float32Array(n), tex = new Float32Array(n);
-  const lift = new Float32Array(n), dim = new Float32Array(n);
+  const lift = new Float32Array(n), dim = new Float32Array(n), aspect = new Float32Array(n);
   let seed = 7;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   for (let i = 0; i < n; i++) {
@@ -86,6 +89,7 @@ export function createUniverse(container, data, atlasUrl, opts) {
     pos[i * 3 + 2] = Math.sin(a) * r;
     size[i] = 2.6 + rnd() * 1.6;
     tex[i] = ex[i].cell;
+    aspect[i] = ex[i].aspect || 1;
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -93,6 +97,7 @@ export function createUniverse(container, data, atlasUrl, opts) {
   geo.setAttribute('aTex', new THREE.BufferAttribute(tex, 1));
   geo.setAttribute('aLift', new THREE.BufferAttribute(lift, 1));
   geo.setAttribute('aDim', new THREE.BufferAttribute(dim, 1));
+  geo.setAttribute('aAspect', new THREE.BufferAttribute(aspect, 1));
 
   const atlas = new THREE.TextureLoader().load(atlasUrl, () => { ready = true; });
   atlas.flipY = false;
@@ -101,7 +106,6 @@ export function createUniverse(container, data, atlasUrl, opts) {
   const uniforms = {
     uAtlas: { value: atlas },
     uGrid: { value: new THREE.Vector2(data.cols, data.rows) },
-    uAspect: { value: data.cell[0] / data.cell[1] },
     uPx: { value: renderer.getPixelRatio() },
     // GPUs cap point sprites (often 511 px), so posters can't grow past this.
     uMaxPoint: { value: renderer.getContext().getParameter(renderer.getContext().ALIASED_POINT_SIZE_RANGE)[1] },
@@ -154,7 +158,7 @@ export function createUniverse(container, data, atlasUrl, opts) {
       v.project(camera);
       const sx = (v.x * 0.5 + 0.5) * width, sy = (-v.y * 0.5 + 0.5) * height;
       const px = pointPx(i, -z);
-      const hw = px * 0.5 * uniforms.uAspect.value, hh = px * 0.5;
+      const hw = px * 0.5 * Math.min(1, aspect[i]), hh = px * 0.5 / Math.max(1, aspect[i]);
       if (Math.abs(cx - sx) < hw && Math.abs(cy - sy) < hh && -z < bestZ) { best = i; bestZ = -z; }
     }
     return best;
@@ -165,7 +169,7 @@ export function createUniverse(container, data, atlasUrl, opts) {
     const z = -v.clone().applyMatrix4(camera.matrixWorldInverse).z;
     v.project(camera);
     const px = pointPx(i, z);
-    return { x: (v.x * 0.5 + 0.5) * width, y: (-v.y * 0.5 + 0.5) * height, h: px };
+    return { x: (v.x * 0.5 + 0.5) * width, y: (-v.y * 0.5 + 0.5) * height, h: px / Math.max(1, aspect[i]) };
   }
 
   // ---------- Input ----------
