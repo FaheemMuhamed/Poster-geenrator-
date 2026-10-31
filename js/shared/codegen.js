@@ -43,14 +43,12 @@ ${pad(script, 4)}
 // Result shape shared by every builder.
 //   source    the full .html file
 //   filename  for downloads
-//   pen       the same thing split into CodePen's HTML / CSS / JS panels
 function result({ id, title, html = '', css = PAGE_CSS, head = '', script, external = [], module = false }) {
   const scripts = external.map((src) => `<script src="${src}"></script>`).join('\n');
   return {
     library: module ? 'three.js' : external.some((s) => s.includes('p5')) ? 'p5.js' : 'WebGL',
     filename: `morva-${id}.html`,
     source: page({ title, css, head: [scripts, head].filter(Boolean).join('\n'), body: html, script, module }),
-    pen: { title, html, css, js: script, js_external: external.join(';'), js_pre_processor: 'none' },
   };
 }
 
@@ -171,11 +169,3 @@ ${sketch.trim()}`;
   return result({ id, title: `${name} · Morva`, head, script, module: true });
 }
 
-// Opens the code in a new CodePen (their documented "prefill" form POST).
-export function openInCodePen(pen) {
-  const form = Object.assign(document.createElement('form'), { action: 'https://codepen.io/pen/define', method: 'POST', target: '_blank' });
-  form.appendChild(Object.assign(document.createElement('input'), { type: 'hidden', name: 'data', value: JSON.stringify(pen) }));
-  document.body.appendChild(form);
-  form.submit();
-  form.remove();
-}

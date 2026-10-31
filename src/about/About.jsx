@@ -82,7 +82,7 @@ export default function About({ onOpenMode, onExplore }) {
           <div className="space-y-2">
             <h2 className="text-[20px] leading-tight font-semibold tracking-tight">For developers</h2>
             <p className="max-w-[52ch] text-[13px] leading-relaxed text-muted-foreground">
-              Every entry has a Code button that opens a terminal with runnable code and your settings built in. Copy it, download it, or open it in CodePen.
+              Every entry has a Code button that opens a terminal with runnable code and your settings built in. Select it and copy it into your own project.
             </p>
           </div>
           <div className="space-y-2">
