@@ -15,7 +15,7 @@ Live at **https://morva-studio.com**. Brand guide: [docs/BRAND.md](docs/BRAND.md
   - **Shape:** 3–4 essential controls for the current mode, then folded groups (Form, Motion, Variation…).
   - **Colour:** palette presets (hover one to preview it on the poster), then fine-tuning of each colour.
   - **Type:** your words, a **layout picker** with live thumbnails, and two typefaces: one for the title and one for the text. Each has a weight. Switch on **Grid** to see the layout's grid as guides; guides are never exported. **Typesetting** adds tracking, leading, case, an outline title, and blend modes (Difference / Multiply).
-  - **Code:** a standalone HTML file of the current visual with your settings built in. Copy it, download it, or open it in CodePen. (Available for some entries so far.)
+  - **Code:** a standalone HTML file of the current visual with your settings built in. Opens as a terminal window; other entries show Morva's own source for the effect.
   - **Finish:** one-click looks (Clean, Soft print, Dreamy, Halftone, Riso, 2-colour, Glitch, Pixel). Hover one to preview it, then fine-tune. 2D modes get background bloom and grain here.
 
 ### Typefaces

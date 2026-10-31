@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Code2, Copy, Download, ExternalLink } from 'lucide-react';
+import { Code2, Copy, Download, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { MODES, modeFile } from '../../js/modes/index.js';
-import { openInCodePen } from '../../js/shared/codegen.js';
 
 // Every effect's own source, loaded only when its Code window opens.
 const SOURCES = import.meta.glob('../../js/modes/*/*.js', { query: '?raw', import: 'default' });
@@ -37,7 +36,7 @@ function useCode(engine) {
     return () => { live = false; };
   }, [standalone, meta]);
 
-  if (standalone) return { kind: 'standalone', text: standalone.source, filename: standalone.filename, library: standalone.library, pen: standalone.pen };
+  if (standalone) return { kind: 'standalone', text: standalone.source, filename: standalone.filename, library: standalone.library };
   const file = meta ? modeFile(meta).split('/').pop() : `${mode.id}.js`;
   return { kind: 'source', text: source, filename: `morva-${file}`, library: { p5: 'p5.js', three: 'three.js', glsl: 'GLSL' }[meta?.library] || 'JS' };
 }
@@ -49,23 +48,23 @@ export function CodeButton({ engine }) {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-7 shrink-0 gap-1.5 px-2 text-[12px]"><Code2 className="size-3.5" /> Code</Button>
       </DialogTrigger>
-      <DialogContent showCloseButton={false} className="max-h-[88vh] max-w-3xl gap-0 overflow-hidden border-0 bg-transparent p-0 shadow-2xl sm:max-w-3xl">
+      <DialogContent showCloseButton={false} className="max-h-[88vh] w-[calc(100%-2rem)] max-w-3xl gap-0 overflow-hidden border-0 bg-transparent p-0 shadow-2xl sm:max-w-3xl">
         <Terminal engine={engine} />
       </DialogContent>
     </Dialog>
   );
 }
 
-// Fixed terminal colours (it stays dark in both themes, like a real terminal).
+// Fixed terminal colours: a light, paper-like terminal in both themes.
 const TERM = {
-  bg: '#141413', bar: '#1f1f1d', line: '#2b2b29', text: '#e8e6df', dim: '#8d8b84', faint: '#5c5a55', prompt: '#ff5a2e', ok: '#9fd28a',
+  bg: '#fbfbf9', bar: '#f0f0ec', line: '#e2e2dd', text: '#1d1d1b', dim: '#77766f', faint: '#b3b2ab', prompt: '#e8431a', ok: '#3d8a2a',
 };
 
 function Terminal({ engine }) {
   const { mode } = engine;
   const code = useCode(engine);
   const lines = code.text ? code.text.split('\n') : [];
-
+  const command = code.kind === 'standalone' ? `morva export ${mode.id} --with-settings` : `morva source ${mode.id}`;
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(code.text);
@@ -74,43 +73,46 @@ function Terminal({ engine }) {
       toast('Copying was blocked. Use Download instead.');
     }
   };
-  const command = code.kind === 'standalone' ? `morva export ${mode.id} --with-settings` : `morva source ${mode.id}`;
 
   return (
-    <div className="flex max-h-[88vh] min-h-0 flex-col overflow-hidden rounded-[10px] font-mono text-[12px] ring-1 ring-black/40" style={{ background: TERM.bg, color: TERM.text }}>
-      {/* Title bar */}
+    <div className="flex max-h-[88vh] min-h-0 flex-col overflow-hidden rounded-[10px] font-mono text-[12px] ring-1 ring-black/10" style={{ background: TERM.bg, color: TERM.text }}>
+      {/* Title bar: one working close button */}
       <div className="flex shrink-0 items-center gap-3 px-3.5 py-2.5" style={{ background: TERM.bar, borderBottom: `1px solid ${TERM.line}` }}>
-        <div className="flex gap-1.5" aria-hidden="true">
-          {['#ff5f57', '#febc2e', '#28c840'].map((c) => <span key={c} className="size-3 rounded-full" style={{ background: c }} />)}
-        </div>
+        <DialogClose
+          aria-label="Close"
+          className="group grid size-3.5 place-items-center rounded-full bg-[#ff5f57] ring-1 ring-black/10 outline-none focus-visible:ring-2 focus-visible:ring-[#1d1d1b]/50"
+        >
+          <X className="size-2.5 text-black/60 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100" strokeWidth={3} />
+        </DialogClose>
         <DialogTitle className="min-w-0 flex-1 truncate text-center font-mono text-[12px] font-normal" style={{ color: TERM.dim }}>
           morva — {code.filename}
         </DialogTitle>
         <DialogDescription className="sr-only">Code for {mode.name}</DialogDescription>
-        <div className="w-[52px]" aria-hidden="true" />
+        <div className="size-3.5" aria-hidden="true" />
       </div>
 
-      {/* Prompt + actions */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 px-4 pb-2 pt-3">
-        <p className="min-w-0 flex-1 truncate"><span style={{ color: TERM.prompt }}>$</span> {command}</p>
-        <div className="flex gap-1">
-          <TermButton onClick={copy} disabled={!code.text}><Copy className="size-3.5" /> copy</TermButton>
-          <TermButton onClick={() => save(code.text, code.filename, code.kind === 'standalone' ? 'text/html' : 'text/javascript')} disabled={!code.text}><Download className="size-3.5" /> download</TermButton>
-          {code.pen && <TermButton onClick={() => openInCodePen(code.pen)}><ExternalLink className="size-3.5" /> codepen</TermButton>}
+      {/* Prompt */}
+      <div className="shrink-0 px-4 pb-3 pt-3">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p className="min-w-0 flex-1 truncate"><span style={{ color: TERM.prompt }}>$</span> {command}</p>
+          <div className="flex gap-1">
+            <TermButton onClick={copy} disabled={!code.text}><Copy className="size-3.5" /> copy</TermButton>
+            <TermButton onClick={() => save(code.text, code.filename, code.kind === 'standalone' ? 'text/html' : 'text/javascript')} disabled={!code.text}><Download className="size-3.5" /> download</TermButton>
+          </div>
         </div>
+        <p className="mt-1" style={{ color: TERM.dim }}>
+          <span style={{ color: TERM.ok }}>✓</span>{' '}
+          {code.kind === 'standalone'
+            ? `${code.library} · ${lines.length} lines · runs on its own with your current settings · grain, glow and text left out`
+            : `${code.library} · Morva's source for ${mode.name} · runs inside Morva, not on its own`}
+        </p>
       </div>
-      <p className="shrink-0 px-4 pb-3" style={{ color: TERM.dim }}>
-        <span style={{ color: TERM.ok }}>✓</span>{' '}
-        {code.kind === 'standalone'
-          ? `${code.library} · ${lines.length} lines · runs on its own with your current settings · grain, glow and text left out`
-          : `${code.library} · Morva's source for ${mode.name} · runs inside Morva, not on its own`}
-      </p>
 
-      {/* Code with line numbers */}
+      {/* Code with line numbers (select any part to copy it) */}
       <div className="min-h-0 flex-1 overflow-auto" style={{ borderTop: `1px solid ${TERM.line}` }}>
         {code.text ? (
           <pre className="py-3 leading-[1.6]">
-            <code className="grid grid-cols-[auto_minmax(0,1fr)]">
+            <code className="grid grid-cols-[auto_minmax(0,1fr)] selection:bg-[#ff5a2e]/20">
               {lines.map((ln, i) => (
                 <span key={i} className="contents">
                   <span className="select-none pl-4 pr-4 text-right tabular-nums" style={{ color: TERM.faint }}>{i + 1}</span>
@@ -132,7 +134,7 @@ function Terminal({ engine }) {
 function TermButton({ children, ...props }) {
   return (
     <button type="button" {...props}
-      className="inline-flex h-7 items-center gap-1.5 rounded-[4px] px-2 text-[11px] transition-colors hover:bg-white/10 focus-visible:outline-1 focus-visible:outline-white/60 disabled:opacity-40"
+      className="inline-flex h-7 items-center gap-1.5 rounded-[4px] px-2 text-[11px] transition-colors hover:bg-black/5 focus-visible:outline-1 focus-visible:outline-black/40 disabled:opacity-40"
       style={{ color: TERM.text, border: `1px solid ${TERM.line}` }}>
       {children}
     </button>
