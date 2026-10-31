@@ -2,13 +2,13 @@
 
 _Draft, 30 Oct 2026._
 
-- **Name:** Morva, from "morph": shapes that keep changing. Formerly "Poster Generator". Domains to check: morva.studio, morva.art.
+- **Name:** Morva, from "morph": shapes that keep changing. Formerly "Poster Generator". Domain: morva-studio.com.
 
 ## Basics
 - **What it is:** a browser-based visualiser and reference library of generative visuals built with p5.js, three.js and GLSL. You can play with each one live, see how it works, export it, and copy its code.
 - **Category:** generative design tool, effect library and, eventually, an archive of techniques.
 - **Stage:** early. v0.2 has 15 visuals, an Explore universe, type layouts and exports.
-- **Website:** https://faheemmuhamed.github.io/poster-generator/
+- **Website:** https://morva-studio.com (custom domain; the GitHub Pages address redirects there)
 
 ## Audience
 - **Primary:** graphic and visual designers. They want striking generative, image and type effects without writing code, and want to understand what is possible.

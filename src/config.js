@@ -7,7 +7,7 @@ export const CONFIG = {
   // Fallback when no Tally form is set.
   FEEDBACK_EMAIL: '',
   REPO_URL: 'https://github.com/FaheemMuhamed/poster-generator',
-  SITE_URL: 'https://faheemmuhamed.github.io/poster-generator/',
+  SITE_URL: 'https://morva-studio.com/',
 };
 
 // Link to a mode's source file, for "How it works".
