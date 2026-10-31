@@ -108,6 +108,11 @@
 
 html.embed, html.embed body { background: transparent; }
 
+/* Blinking cursor in the Code terminal. */
+.morva-cursor { animation: morva-blink 1s steps(1) infinite; }
+@keyframes morva-blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .morva-cursor { animation: none; } }
+
 /* The Morva seal: a disc that slowly becomes a square and back. */
 .morva-seal { border-radius: 50%; animation: morva-seal 9s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 @keyframes morva-seal { 0%, 12% { border-radius: 50%; } 45%, 62% { border-radius: 2px; } 100% { border-radius: 50%; } }

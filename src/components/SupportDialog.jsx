@@ -1,4 +1,4 @@
-import { Heart, Star } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -34,9 +34,6 @@ export default function SupportDialog() {
           ) : (
             <p className="rounded-md bg-muted/50 p-3 text-[12px] text-muted-foreground">Donations open soon.</p>
           )}
-          <Button variant="ghost" asChild className="mt-3 w-full gap-2 text-[12px]">
-            <a href={CONFIG.REPO_URL} target="_blank" rel="noreferrer"><Star className="size-4" /> Star it on GitHub</a>
-          </Button>
         </div>
 
         <div className="mt-4 border-t border-border/60 px-6 pb-6 pt-4">

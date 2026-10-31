@@ -70,7 +70,7 @@ export function settingsOf(state) {
   return rest;
 }
 
-// The address of the site itself (without settings), e.g. https://you.github.io/poster-generator/
+// The address of the site itself (without settings), e.g. https://morva-studio.com/
 export function siteUrl() {
   return location.origin + location.pathname.replace(/index\.html$/, '');
 }

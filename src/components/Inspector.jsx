@@ -1,6 +1,4 @@
-import { ALargeSmall, CaseLower, CaseSensitive, CaseUpper, ChevronRight, Code2, Dices, MoveHorizontal, MoveVertical, RotateCcw, Type, TypeOutline } from 'lucide-react';
-import { modeFile } from '../../js/modes/index.js';
-import { sourceUrl } from '../config.js';
+import { ALargeSmall, CaseLower, CaseSensitive, CaseUpper, ChevronRight, Dices, MoveHorizontal, MoveVertical, RotateCcw, Type, TypeOutline } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -391,9 +389,6 @@ export default function Inspector() {
               <p className="text-muted-foreground">{meta.technique}</p>
               <div className="flex flex-wrap items-center gap-1">
                 {meta.tags.map((t) => <span key={t} className="rounded-full bg-card px-1.5 py-0.5 text-[10.5px] text-muted-foreground ring-1 ring-border">{t}</span>)}
-                <a href={sourceUrl(modeFile(meta))} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
-                  <Code2 className="size-3" /> View source
-                </a>
               </div>
             </div>
           </details>
